@@ -154,11 +154,14 @@ public class PlayState extends BaseAppState {
 
 	
 	public void doAction(String code, boolean pressed, int value) {
-		if (!this.isInitialized()) 
+		if (!this.isInitialized())
 			return;
 		if (!pressed)
 			return; //only one per key pls
 
+		if (!isEnabled() && code != "Pause")
+			return; //only allow pause through on paused
+		
 		switch(code) {
 			case "Pause":
 				this.setEnabled(!isEnabled());
