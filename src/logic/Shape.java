@@ -4,78 +4,99 @@ import java.util.Random;
 
 import com.jme3.math.ColorRGBA;
 
+import logic.ShapeRotator.KickType;
+
 
 public class Shape {
 	
 	public enum Type {
 		I,T,O,S,Z,J,L,NONE;
 	}
-	private enum Rotation {
-		NONE, NORMAL, WEIRD;
+	public enum Rotation {
+		NONE(0), RIGHT(1), DOUBLE(2), LEFT(3);
+		int i;
+		Rotation(int i) {
+			this.i = i;
+		}
+		
+		public Rotation add(int i) {
+			int newInt = (this.i + i + 4) % 4;
+			switch(newInt) {
+	        case 0:
+	            return NONE;
+	        case 1:
+	            return RIGHT;
+	        case 2:
+	            return DOUBLE;
+	        case 3:
+	            return LEFT;
+	        }
+	        return null;
+		}
 	}
 	
 	private static Random rand = new Random();
 	public static Shape GenerateRand(ColorRGBA colour) {
-		//TODO http://tetris.wikia.com/wiki/SRS
+		//info from: http://tetris.wikia.com/wiki/SRS
 		
 		Shape shape = null;
-		int number = rand.nextInt(7);
+		int number = rand.nextInt(7); //TODO 'bag' random
 		switch (number) {//I, O, T, S, Z, J, and L
 			case 0: //I
-				shape = new Shape(Type.I, Rotation.WEIRD, colour);
+				shape = new Shape(Type.I, KickType.OTHER, colour);
 				shape.addCell(new Cell(3,0));
 				shape.addCell(new Cell(4,0)); //    
 				shape.addCell(new Cell(5,0));
 				shape.addCell(new Cell(6,0));
-				shape.setCentre(5, 0);
+				shape.setCentre(4.5f, 0.5f); //TODO 4.5,0.5
 				break;
 			case 1: //O
-				shape = new Shape(Type.O, Rotation.NONE, colour);
+				shape = new Shape(Type.O, KickType.OTHER, colour); //doesn't matter what kick type and I looked lonely
 				shape.addCell(new Cell(4,0)); //  
 				shape.addCell(new Cell(5,0)); //  
 				shape.addCell(new Cell(4,1));
 				shape.addCell(new Cell(5,1));
-				shape.setCentre(4, 0); //just in case
+				shape.setCentre(4.5f, 0.5f); //TODO technically nothing, and technically 4.5, 0.5
 				break;
 			case 2: //T
-				shape = new Shape(Type.T, Rotation.NORMAL, colour);
-				shape.addCell(new Cell(3,0)); //   
-				shape.addCell(new Cell(4,0)); //   
+				shape = new Shape(Type.T, KickType.NORMAL, colour);
+				shape.addCell(new Cell(3,1)); //   
+				shape.addCell(new Cell(4,0)); //   
 				shape.addCell(new Cell(4,1));
-				shape.addCell(new Cell(5,0));
-				shape.setCentre(4, 0);
+				shape.addCell(new Cell(5,1));
+				shape.setCentre(4, 1);
 				break;
 			case 3: //S
-				shape = new Shape(Type.S, Rotation.WEIRD, colour);
-				shape.addCell(new Cell(4,0)); //    
-				shape.addCell(new Cell(4,1)); //  
+				shape = new Shape(Type.S, KickType.NORMAL, colour);
+				shape.addCell(new Cell(3,1)); //    
+				shape.addCell(new Cell(4,0)); //  
+				shape.addCell(new Cell(4,1));
 				shape.addCell(new Cell(5,0));
-				shape.addCell(new Cell(3,1));
-				shape.setCentre(4, 0);
+				shape.setCentre(4, 1);
 				break;
 			case 4: //Z
-				shape = new Shape(Type.Z, Rotation.WEIRD, colour);
+				shape = new Shape(Type.Z, KickType.NORMAL, colour);
 				shape.addCell(new Cell(5,1)); //  
 				shape.addCell(new Cell(4,0)); //    
 				shape.addCell(new Cell(4,1));
 				shape.addCell(new Cell(3,0));
-				shape.setCentre(4, 0);
+				shape.setCentre(4, 1);
 				break;
 			case 5: //J
-				shape = new Shape(Type.J, Rotation.NORMAL, colour);
-				shape.addCell(new Cell(3,0)); //   
-				shape.addCell(new Cell(4,0)); //     
-				shape.addCell(new Cell(5,0));
+				shape = new Shape(Type.J, KickType.NORMAL, colour);
+				shape.addCell(new Cell(3,0)); // 
+				shape.addCell(new Cell(3,1)); //   
+				shape.addCell(new Cell(4,1));
 				shape.addCell(new Cell(5,1));
-				shape.setCentre(4, 0);
+				shape.setCentre(4, 1);
 				break;
 			case 6: //L
-				shape = new Shape(Type.L, Rotation.NORMAL, colour);
-				shape.addCell(new Cell(3,1)); //   
-				shape.addCell(new Cell(3,0)); // 
-				shape.addCell(new Cell(4,0));
+				shape = new Shape(Type.L, KickType.NORMAL, colour);
+				shape.addCell(new Cell(3,1)); //     
+				shape.addCell(new Cell(4,1)); //   
 				shape.addCell(new Cell(5,0));
-				shape.setCentre(4, 0);
+				shape.addCell(new Cell(5,1));
+				shape.setCentre(4, 1);
 				break;
 		}
 		return shape;
@@ -85,69 +106,60 @@ public class Shape {
 	protected final LinkedList<Cell> shapeCells; //cells in this shape
 	protected final ColorRGBA colour; //colour of this shape
 	protected final Type type;
-	protected final Rotation rotType;
+	protected KickType kickType;
+
+	protected Rotation rotState;
+	protected float xCentre;
+	protected float yCentre; //pixel to rotate about
 	
-	protected int xCentre;
-	protected int yCentre; //pixel to rotate about
-	
-	//weird rotation type:
-	private boolean rotateState; //either rotate left, or right... (but only once)
-	
-	private Shape(Type t, Rotation rotType, ColorRGBA colour) {
+	private Shape(Type t, KickType kickType, ColorRGBA colour) {
 		this.type = t;
-		this.rotType = rotType;
+		this.kickType = kickType;
 		this.colour = colour;
+		
+		this.rotState = Rotation.NONE;
 		this.shapeCells = new LinkedList<Cell>();
 	}
 	
 	public Shape clone() {
-		Shape newShape = new Shape(this.type, this.rotType, this.colour);
+		Shape newShape = new Shape(this.type, this.kickType, this.colour);
 		for (Cell c: this.getCells()) {
 			newShape.addCell(c.clone());
 		}
 		newShape.xCentre = this.xCentre;
 		newShape.yCentre = this.yCentre;
-		newShape.rotateState = this.rotateState;
+		newShape.rotState = this.rotState;
 		return newShape;
 	}
 	
-	//NOTE THE LACK OF WALL PUSHING IN abstract methods
-	public void rotate(int direction, int xMax, int yMax) {
-		
-		if (rotType == Rotation.NORMAL) {
-			int tempX = 0;
-			int tempY = 0;
-			
+	protected void rotate(boolean right) {
+		this.rotState = this.rotState.add(right ? 1 : -1);
+
+//		if (this.kickType == KickType.OTHER) {
 			for (Cell c: shapeCells) {
-				tempY = c.getX() - this.xCentre;
-				tempX = c.getY() - this.yCentre;
-				c.translate(-tempY, -tempX);
-				if (direction == 0) {
-					tempX = -tempX; //right
+				float dx = this.xCentre - c.getX();
+				float dy = this.yCentre - c.getY();
+				
+				if (right) {
+					c.translate((int)(dx+dy), (int)(dy-dx));
 				} else {
-					tempY = -tempY; //left?
+					c.translate((int)(dx-dy), (int)(dy+dx));
 				}
-				c.translate(-tempX, -tempY);
 			}
-		} else if (rotType == Rotation.WEIRD) {
-			//note direction is irrelevant for the ShapeWeird objects
-			int tempX = 0;
-			int tempY = 0;
-			
+		/*} else {
 			for (Cell c: shapeCells) {
-				tempY = c.getX() - this.xCentre;
-				tempX = c.getY() - this.yCentre;
-				c.translate(-tempY, -tempX);
-				if (this.rotateState) { 
-					tempX = -tempX;
+				int dx = (int)this.xCentre - c.getX();
+				int dy = (int)this.yCentre - c.getY();
+				
+				c.translate((int)dx, (int)dy);
+				if (right) {
+					dx = -dx;
 				} else {
-					tempY = -tempY;
+					dy = -dy;
 				}
-				c.translate(-tempX, -tempY);
+				c.translate((int)dy, (int)dx);
 			}
-			
-			this.rotateState = !rotateState;
-		}
+		}*/
 	}
 	
 	
@@ -158,7 +170,7 @@ public class Shape {
 	}
 	
 	//these must be called after init of this
-	private void setCentre(int x, int y) {
+	private void setCentre(float x, float y) {
 		this.yCentre = y;
 		this.xCentre = x;
 	}
@@ -167,7 +179,6 @@ public class Shape {
 		for (Cell cell: shapeCells) {
 			cell.translate(x, y);
 		}
-		if (xCentre==-1 && yCentre==-1) return;
 		xCentre += x; //yeah don't forget these guys
 		yCentre += y;
 	}

@@ -190,10 +190,11 @@ public class TetrisGame implements Tetris {
 			return;
 
 		Shape newState = this.curShape.clone();
-		newState.rotate(left ? 1 : 0, 0, 0);
+		newState = ShapeRotator.rotate(newState, left, (s) -> {
+			return isValidMove(s);
+		});
 		
 		if (!isValidMove(newState))
-			//TODO push off of walls
 			return;
 		
 		this.curShape = newState;
