@@ -35,8 +35,9 @@ public class PlayState extends BaseAppState {
 	private final Main main;
 	private final GameType type;
 	private final int bCount;
-	private final Material defaultMat;
-	private final Material defaultMeshMat;
+	
+	private Material defaultMat;
+	private Material defaultMeshMat;
 		
 	private Node rootNode;
 	private Tetris game;
@@ -44,7 +45,7 @@ public class PlayState extends BaseAppState {
 	private BitmapText score;
 	private BitmapText lines;
 	private BitmapText level;
-		
+	
 	private HashMap<Cell, Geometry> cellMap;
 	private HashMap<Cell, Geometry> nextCellMap;
 	private List<Geometry> ghostGeos;
@@ -52,18 +53,19 @@ public class PlayState extends BaseAppState {
 	private Keys keys;
 	
 	private float flashTimer;
+	private float gameOverTimer;
 	
 	public PlayState(Main m, GameType type, int bCount) {
 		this.main = m;
 		this.type = type;
 		this.bCount = bCount;
-		defaultMat = new Material(Main.CURRENT.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-		defaultMeshMat = new Material(Main.CURRENT.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
 	}
 	
-	
 	public void initialize(Application app) {
+		gameOverTimer = 1; //init here because it can only happen once per game
 		
+		defaultMat = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+		defaultMeshMat = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
 		defaultMat.setColor("Color", new ColorRGBA(0.95f,0.95f,0.95f,1));
 		defaultMeshMat.setColor("Color", new ColorRGBA(0.95f,0.95f,0.95f,1));
 		defaultMeshMat.getAdditionalRenderState().setWireframe(true);
@@ -194,9 +196,9 @@ public class PlayState extends BaseAppState {
 		super.update(tpf);
 		
 		if (game.isGameOver()) {
-			//finish 
-			//TODO maybe something slower?
-			main.gameLost(type, this.bCount, new Record(game.getScore(), game.getLinesCount()));
+			gameOverTimer -= tpf;
+			if (gameOverTimer < 0)
+				main.gameLost(type, this.bCount, new Record(game.getScore(), game.getLinesCount()));
 			
 			return;
 		}
