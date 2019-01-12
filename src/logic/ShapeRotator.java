@@ -87,60 +87,60 @@ public class ShapeRotator {
 	//TODO the first one is always 0,0
 	//TODO a_b == b_a * -1
 	private static final List<Kick> kick0_R = Arrays.asList(
-			 new Kick(0,0), new Kick(-1,0), new Kick(-1,1), new Kick(0,-2), new Kick(-1,-2)
+			new Kick(0,0), new Kick(-1,0), new Kick(-1,1), new Kick(0,-2), new Kick(-1,-2)
 		);
 	private static final List<Kick> kickR_0 = Arrays.asList(
-			 new Kick(0,0), new Kick(1,0), new Kick(1,-1), new Kick(0,2), new Kick(1,2)
+			new Kick(0,0), new Kick(1,0), new Kick(1,-1), new Kick(0,2), new Kick(1,2)
 		);
 	
 	private static final List<Kick> kickR_2 = Arrays.asList(
-			 new Kick(0,0), new Kick(1,0), new Kick(1,-1), new Kick(0,2), new Kick(1,2)
+			new Kick(0,0), new Kick(1,0), new Kick(1,-1), new Kick(0,2), new Kick(1,2)
 		);
 	private static final List<Kick> kick2_R = Arrays.asList(
-			 new Kick(0,0), new Kick(-1,0), new Kick(-1,1), new Kick(0,-2), new Kick(-1,-2)
+			new Kick(0,0), new Kick(-1,0), new Kick(-1,1), new Kick(0,-2), new Kick(-1,-2)
 		);
 	
 	private static final List<Kick> kick2_L = Arrays.asList(
-			 new Kick(0,0), new Kick(1,0), new Kick(1,1), new Kick(0,-2), new Kick(1,-2)
+			new Kick(0,0), new Kick(1,0), new Kick(1,1), new Kick(0,-2), new Kick(1,-2)
 		);
 	private static final List<Kick> kickL_2 = Arrays.asList(
-			 new Kick(0,0), new Kick(-1,0), new Kick(-1,-1), new Kick(0,2), new Kick(-1,2)
+			new Kick(0,0), new Kick(-1,0), new Kick(-1,-1), new Kick(0,2), new Kick(-1,2)
 		);
 	
 	private static final List<Kick> kickL_0 = Arrays.asList(
-			 new Kick(0,0), new Kick(-1,0), new Kick(-1,-1), new Kick(0,2), new Kick(-1,2)
+			new Kick(0,0), new Kick(-1,0), new Kick(-1,-1), new Kick(0,2), new Kick(-1,2)
 		);
 	private static final List<Kick> kick0_L = Arrays.asList(
-			 new Kick(0,0), new Kick(-1,0), new Kick(1,1), new Kick(0,-2), new Kick(1,-2)
+			new Kick(0,0), new Kick(-1,0), new Kick(1,1), new Kick(0,-2), new Kick(1,-2)
 		);
 	
 	
 	//kick constants for the line 'I' (and technically 'O' but it doesn't change)
 	private static final List<Kick> kickI0_R = Arrays.asList(
-			 new Kick(0,0), new Kick(-1,0), new Kick(-1,1), new Kick(0,-2), new Kick(-1,-2)
+			new Kick(0,0), new Kick(-2,0), new Kick(1,0), new Kick(-2,-1), new Kick(1,2)
 		);
 	private static final List<Kick> kickIR_0 = Arrays.asList(
-			 new Kick(0,0), new Kick(1,0), new Kick(1,-1), new Kick(0,2), new Kick(1,2)
+			new Kick(0,0), new Kick(2,0), new Kick(-1,0), new Kick(2,1), new Kick(-1,-2)
 		);
 	
 	private static final List<Kick> kickIR_2 = Arrays.asList(
-			 new Kick(0,0), new Kick(1,0), new Kick(1,-1), new Kick(0,2), new Kick(1,2)
+			new Kick(0,0), new Kick(-1,0), new Kick(2,0), new Kick(-1,2), new Kick(2,-1)
 		);
 	private static final List<Kick> kickI2_R = Arrays.asList(
-			 new Kick(0,0), new Kick(-1,0), new Kick(-1,1), new Kick(0,-2), new Kick(-1,-2)
+			new Kick(0,0), new Kick(1,0), new Kick(-2,0), new Kick(1,-2), new Kick(-2,1)
 		);
 	
 	private static final List<Kick> kickI2_L = Arrays.asList(
-			 new Kick(0,0), new Kick(1,0), new Kick(1,1), new Kick(0,-2), new Kick(1,-2)
+			new Kick(0,0), new Kick(2,0), new Kick(-1,0), new Kick(2,1), new Kick(-1,-2)
 		);
 	private static final List<Kick> kickIL_2 = Arrays.asList(
-			 new Kick(0,0), new Kick(-1,0), new Kick(-1,-1), new Kick(0,2), new Kick(-1,2)
+			new Kick(0,0), new Kick(-2,0), new Kick(1,0), new Kick(-2,-1), new Kick(1,2)
 		);
 	
 	private static final List<Kick> kickIL_0 = Arrays.asList(
-			 new Kick(0,0), new Kick(-1,0), new Kick(-1,-1), new Kick(0,2), new Kick(-1,2)
+			new Kick(0,0), new Kick(1,0), new Kick(-2,0), new Kick(1,-2), new Kick(-2,1)
 		);
 	private static final List<Kick> kickI0_L = Arrays.asList(
-			 new Kick(0,0), new Kick(-1,0), new Kick(1,1), new Kick(0,-2), new Kick(1,-2)
+			new Kick(0,0), new Kick(-1,0), new Kick(2,0), new Kick(-1,2), new Kick(2,-1)
 		);
 }
