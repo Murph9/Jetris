@@ -10,6 +10,7 @@ public class ShapeRotator {
 
 	//Whole reason this class exists:
 	//https://harddrop.com/wiki/SRS#Wall_Kick_Illustration
+	//http://tetris.wikia.com/wiki/SRS
 	
 	enum KickType {
 		NORMAL,
@@ -24,10 +25,7 @@ public class ShapeRotator {
 			Shape s = shape.clone();
 			s.translate(k.x, -k.y); //my y is inverted from all guides online
 			if (isValid.apply(s)) {
-				System.out.println("Kick type: Y " + kicks.indexOf(k) + " " + right + rotState + shape.rotState);
 				return s;
-			} else {
-				System.out.println("Kick type: N " + kicks.indexOf(k) + " " + right + rotState + shape.rotState);
 			}
 		}
 	
@@ -88,8 +86,6 @@ public class ShapeRotator {
 	/////REGION of kick constants
 	//TODO the first one is always 0,0
 	//TODO a_b == b_a * -1
-	//http://tetris.wikia.com/wiki/SRS
-	//https://harddrop.com/wiki/SRS#Wall_Kick_Illustration
 	private static final List<Kick> kick0_R = Arrays.asList(
 			 new Kick(0,0), new Kick(-1,0), new Kick(-1,1), new Kick(0,-2), new Kick(-1,-2)
 		);
@@ -119,8 +115,7 @@ public class ShapeRotator {
 		);
 	
 	
-	//kick constants for the line 'I'
-	
+	//kick constants for the line 'I' (and technically 'O' but it doesn't change)
 	private static final List<Kick> kickI0_R = Arrays.asList(
 			 new Kick(0,0), new Kick(-1,0), new Kick(-1,1), new Kick(0,-2), new Kick(-1,-2)
 		);

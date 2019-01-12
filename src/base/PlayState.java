@@ -19,6 +19,7 @@ import com.jme3.scene.Node;
 import com.jme3.scene.shape.Box;
 
 import logic.Cell;
+import logic.CellColour;
 import logic.Tetris;
 import logic.Tetris.GameType;
 import logic.TetrisGame;
@@ -234,9 +235,10 @@ public class PlayState extends BaseAppState {
 		for (Cell c: game.ghostShapeCells()) {
 			Geometry g = this.ghostGeos.get(geoIndex);
 			Material mat = defaultMeshMat.clone();
-			ColorRGBA col = c.getColour();
+			CellColour col = c.getColour();
 			if (col != null)
-				mat.setColor("Color", col);
+				mat.setColor("Color", new ColorRGBA(col.r, col.g, col.b, col.a));
+			
 			g.setMaterial(mat);
 			
 			Cell c2 = game.getCell(c.getX(), c.getY());
@@ -289,10 +291,10 @@ public class PlayState extends BaseAppState {
 			return; //ignore
 		
 		Material mat = defaultMat.clone();
-		ColorRGBA col = c.getColour();
+		CellColour col = c.getColour();
 		if (col != null)
-			mat.setColor("Color", col);
-		
+			mat.setColor("Color", new ColorRGBA(col.r, col.g, col.b, col.a));
+
 		g.setMaterial(mat);
 	}
 

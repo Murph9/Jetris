@@ -4,10 +4,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-import com.jme3.math.ColorRGBA;
-
-import base.H;
-
 public class TetrisGame implements Tetris {
 	
 	//frame count per level (at 60 fps)
@@ -61,8 +57,8 @@ public class TetrisGame implements Tetris {
 	public void initialise(GameType type, int lines) {
 		this.type = type;
 		
-		this.curShape = Shape.GenerateRand(H.randomColourHSV());
-		this.nextShape = Shape.GenerateRand(H.randomColourHSV());
+		this.curShape = Shape.GenerateRand();
+		this.nextShape = Shape.GenerateRand();
 		updateGhostShape();
 		
 		if (type == GameType.TYPE_B) {
@@ -76,7 +72,7 @@ public class TetrisGame implements Tetris {
 				if (isCellFilled(tempX, tempY)) {
 					i--;
 				} else { //place :D
-					fillCell(tempX, tempY, ColorRGBA.Black);
+					fillCell(tempX, tempY, new CellColour(0,0,0,1));
 				}
 			}
 		}
@@ -257,7 +253,7 @@ public class TetrisGame implements Tetris {
 	private void spawnNextBlock() {
 		//generate the next shapes
 		this.curShape = this.nextShape;
-		this.nextShape = Shape.GenerateRand(H.randomColourHSV());
+		this.nextShape = Shape.GenerateRand();
 		
 		for (Cell c: this.curShape.getCells()) {
 			if (isCellFilled(c.getX(), c.getY())) {
@@ -270,7 +266,7 @@ public class TetrisGame implements Tetris {
 		resetDropTimer();
 	}
 	
-	private void fillCell(int x, int y, ColorRGBA colour) {
+	private void fillCell(int x, int y, CellColour colour) {
 		if (x < 0 || y < 0)
 			return;
 		cells[y][x].fill(colour);

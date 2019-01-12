@@ -1,8 +1,9 @@
 package logic;
-import java.util.LinkedList;
-import java.util.Random;
 
-import com.jme3.math.ColorRGBA;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Random;
 
 import logic.ShapeRotator.KickType;
 
@@ -35,68 +36,83 @@ public class Shape {
 		}
 	}
 	
+	private static final Type TYPES[] = Type.values();
+	private static final Map<Type, CellColour> TYPE_COLOUR;
+	static {
+		TYPE_COLOUR = new HashMap<>();
+		TYPE_COLOUR.put(Type.I, new CellColour(0f, 0.8f, 0.8f, 1f));
+		TYPE_COLOUR.put(Type.O, new CellColour(0.8f, 0.8f, 0f, 1f));
+		TYPE_COLOUR.put(Type.T, new CellColour(0.8f, 0f, 0.8f, 1f));
+		TYPE_COLOUR.put(Type.S, new CellColour(0f, 0.8f, 0f, 1f));
+		TYPE_COLOUR.put(Type.Z, new CellColour(0.8f, 0f, 0f, 1f));
+		TYPE_COLOUR.put(Type.J, new CellColour(0f, 0f, 0.8f, 1f));
+		TYPE_COLOUR.put(Type.L, new CellColour(0.8f*251f / 255f, 0.8f*130f / 255f, 0f, 1f));
+	}
+	
 	private static Random rand = new Random();
-	public static Shape GenerateRand(ColorRGBA colour) {
+	public static Shape GenerateRand() {
 		//info from: http://tetris.wikia.com/wiki/SRS
-		
 		Shape shape = null;
-		int number = rand.nextInt(7); //TODO 'bag' random
-		switch (number) {//I, O, T, S, Z, J, and L
-			case 0: //I
-				shape = new Shape(Type.I, KickType.OTHER, colour);
-				shape.addCell(new Cell(3,0));
-				shape.addCell(new Cell(4,0)); //    
+		Type t = TYPES[rand.nextInt(7)]; //TODO 'bag' random
+		switch (t) {//I, O, T, S, Z, J, and L
+			case I:
+				shape = new Shape(t, KickType.OTHER);
+				shape.addCell(new Cell(3,0)); //    
+				shape.addCell(new Cell(4,0));
 				shape.addCell(new Cell(5,0));
 				shape.addCell(new Cell(6,0));
-				shape.setCentre(4.5f, 0.5f); //TODO 4.5,0.5
+				shape.setCentre(4.5f, 0.5f);
 				break;
-			case 1: //O
-				shape = new Shape(Type.O, KickType.OTHER, colour); //doesn't matter what kick type and I looked lonely
+			case O:
+				shape = new Shape(t, KickType.OTHER); //doesn't matter what kick type and I looked lonely
 				shape.addCell(new Cell(4,0)); //  
 				shape.addCell(new Cell(5,0)); //  
 				shape.addCell(new Cell(4,1));
 				shape.addCell(new Cell(5,1));
-				shape.setCentre(4.5f, 0.5f); //TODO technically nothing, and technically 4.5, 0.5
+				shape.setCentre(4.5f, 0.5f); //technically nothing
 				break;
-			case 2: //T
-				shape = new Shape(Type.T, KickType.NORMAL, colour);
+			case T:
+				shape = new Shape(t, KickType.NORMAL);
 				shape.addCell(new Cell(3,1)); //   
 				shape.addCell(new Cell(4,0)); //   
 				shape.addCell(new Cell(4,1));
 				shape.addCell(new Cell(5,1));
 				shape.setCentre(4, 1);
 				break;
-			case 3: //S
-				shape = new Shape(Type.S, KickType.NORMAL, colour);
+			case S:
+				shape = new Shape(t, KickType.NORMAL);
 				shape.addCell(new Cell(3,1)); //    
 				shape.addCell(new Cell(4,0)); //  
 				shape.addCell(new Cell(4,1));
 				shape.addCell(new Cell(5,0));
 				shape.setCentre(4, 1);
 				break;
-			case 4: //Z
-				shape = new Shape(Type.Z, KickType.NORMAL, colour);
+			case Z:
+				shape = new Shape(t, KickType.NORMAL);
 				shape.addCell(new Cell(5,1)); //  
 				shape.addCell(new Cell(4,0)); //    
 				shape.addCell(new Cell(4,1));
 				shape.addCell(new Cell(3,0));
 				shape.setCentre(4, 1);
 				break;
-			case 5: //J
-				shape = new Shape(Type.J, KickType.NORMAL, colour);
+			case J:
+				shape = new Shape(t, KickType.NORMAL);
 				shape.addCell(new Cell(3,0)); // 
 				shape.addCell(new Cell(3,1)); //   
 				shape.addCell(new Cell(4,1));
 				shape.addCell(new Cell(5,1));
 				shape.setCentre(4, 1);
 				break;
-			case 6: //L
-				shape = new Shape(Type.L, KickType.NORMAL, colour);
+			case L:
+				shape = new Shape(t, KickType.NORMAL);
 				shape.addCell(new Cell(3,1)); //     
 				shape.addCell(new Cell(4,1)); //   
 				shape.addCell(new Cell(5,0));
 				shape.addCell(new Cell(5,1));
 				shape.setCentre(4, 1);
+				break;
+			default:
+				//TODO log pls
 				break;
 		}
 		return shape;
@@ -104,7 +120,7 @@ public class Shape {
 	
 	////////////////////////////
 	protected final LinkedList<Cell> shapeCells; //cells in this shape
-	protected final ColorRGBA colour; //colour of this shape
+	protected final CellColour colour; //colour of this shape
 	protected final Type type;
 	protected KickType kickType;
 
@@ -112,13 +128,17 @@ public class Shape {
 	protected float xCentre;
 	protected float yCentre; //pixel to rotate about
 	
-	private Shape(Type t, KickType kickType, ColorRGBA colour) {
+	private Shape(Type t, KickType kickType, CellColour colour) {
 		this.type = t;
 		this.kickType = kickType;
 		this.colour = colour;
 		
 		this.rotState = Rotation.NONE;
 		this.shapeCells = new LinkedList<Cell>();
+	}
+	private Shape(Type t, KickType kickType) {
+		this(t, kickType, TYPE_COLOUR.get(t));
+//		TODO setting for random colors H.randomColourHSV()
 	}
 	
 	public Shape clone() {
@@ -135,31 +155,16 @@ public class Shape {
 	protected void rotate(boolean right) {
 		this.rotState = this.rotState.add(right ? 1 : -1);
 
-//		if (this.kickType == KickType.OTHER) {
-			for (Cell c: shapeCells) {
-				float dx = this.xCentre - c.getX();
-				float dy = this.yCentre - c.getY();
-				
-				if (right) {
-					c.translate((int)(dx+dy), (int)(dy-dx));
-				} else {
-					c.translate((int)(dx-dy), (int)(dy+dx));
-				}
+		for (Cell c: shapeCells) {
+			float dx = this.xCentre - c.getX();
+			float dy = this.yCentre - c.getY();
+			
+			if (right) {
+				c.translate((int)(dx+dy), (int)(dy-dx));
+			} else {
+				c.translate((int)(dx-dy), (int)(dy+dx));
 			}
-		/*} else {
-			for (Cell c: shapeCells) {
-				int dx = (int)this.xCentre - c.getX();
-				int dy = (int)this.yCentre - c.getY();
-				
-				c.translate((int)dx, (int)dy);
-				if (right) {
-					dx = -dx;
-				} else {
-					dy = -dy;
-				}
-				c.translate((int)dy, (int)dx);
-			}
-		}*/
+		}
 	}
 	
 	
@@ -186,7 +191,7 @@ public class Shape {
 	public LinkedList<Cell> getCells() {
 		return new LinkedList<Cell>(this.shapeCells);
 	}
-	public ColorRGBA getColour() { return this.colour; }
+	public CellColour getColour() { return this.colour; }
 	
 	@Override
 	public String toString() { return "Colour: ["+colour+"] Cells" + shapeCells+"]"; }

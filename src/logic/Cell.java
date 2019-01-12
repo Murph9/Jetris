@@ -1,13 +1,10 @@
 package logic;
 
-import com.jme3.math.ColorRGBA;
-
-
 public class Cell {
 	
 	private int x;
 	private int y;
-	private ColorRGBA colour;
+	private CellColour colour;
 	
 	private boolean full;
 	
@@ -24,7 +21,7 @@ public class Cell {
 	}
 	
 	//makes it 'there'
-	public void fill(ColorRGBA colour) {
+	public void fill(CellColour colour) {
 		this.colour = colour;
 		this.full = true;
 	}
@@ -37,7 +34,7 @@ public class Cell {
 	
 	public int getX() {	return this.x; }
 	public int getY() { return this.y; }
-	public ColorRGBA getColour() { return this.colour; }
+	public CellColour getColour() { return this.colour; }
 	public boolean getFilled() { return this.full; }
 	
 	

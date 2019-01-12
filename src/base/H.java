@@ -2,15 +2,15 @@ package base;
 
 import java.util.Random;
 
-import com.jme3.math.ColorRGBA;
+import logic.CellColour;
 
 public class H {
 	
 	private static Random rand = new Random();
 	
-	public static ColorRGBA randomColourHSV() {
+	public static CellColour randomColourHSV() {
 		float[] rgb = hsvToRGB(rand.nextInt(360), (rand.nextFloat()/2)+0.3, (rand.nextDouble()/2)+0.3);
-		return new ColorRGBA(rgb[0], rgb[1], rgb[2], 1); 
+		return new CellColour(rgb[0], rgb[1], rgb[2], 1); 
 	}
 	
 	//0 <= h < 360, 0 <= s< 1, 0 <= v< 1, type 
