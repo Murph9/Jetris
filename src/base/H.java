@@ -2,6 +2,9 @@ package base;
 
 import java.util.Random;
 
+import com.jme3.math.FastMath;
+import com.jme3.math.Vector3f;
+
 import logic.CellColour;
 
 public class H {
@@ -54,5 +57,12 @@ public class H {
 		out[1] = (float)(temp[1] + m);
 		out[2] = (float)(temp[2] + m);
 		return out;
+	}
+	
+	
+	public static Vector3f randV3f(float max, boolean scaleNegative) {
+		float offset = scaleNegative ? max : 0;
+		float scale = scaleNegative ? 2 : 1;
+		return new Vector3f(FastMath.nextRandomFloat()*scale*max-offset, FastMath.nextRandomFloat()*scale*max-offset, FastMath.nextRandomFloat()*scale*max-offset);
 	}
 }
