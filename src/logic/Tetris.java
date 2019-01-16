@@ -3,12 +3,8 @@ package logic;
 import java.util.List;
 
 public interface Tetris {
-
-	public enum GameType {
-		TYPE_A, TYPE_B, NONE;
-	}
 	
-	public void initialise(GameType type, int lines);
+	public void initialise();
 	public void update(float tpf);
 	
 	public List<Cell> curShapeCells();
@@ -27,7 +23,7 @@ public interface Tetris {
 	public void hardDown();
 	public void softDown();
 	public void moveSide(boolean left);
-	public void rotate(boolean left);
+	public void rotate(boolean right);
 	
 	public boolean isGameOver();
 	
