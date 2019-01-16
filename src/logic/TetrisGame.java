@@ -169,8 +169,10 @@ public class TetrisGame implements Tetris {
 		}
 		
 		if (!isValidMove(newState)) {
-			if (action == InputAction.SOFT_DOWN)
+			if (action == InputAction.SOFT_DOWN || action == InputAction.GRAVITY_DOWN) {
+				//TODO implement something here for lock delay here
 				blockHit(); //a down move failed, lock in place
+			}
 			return;
 		}
 		
