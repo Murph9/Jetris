@@ -2,24 +2,21 @@ package logic;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
 
 public class TetrisGame implements Tetris {
-	
-	//frame count per level (at 60 fps)
-	private static int[] SPEED_LIST = {53,49,45,41,37,33,28,22,17,11,10,9,8,7,6,6,5,5,4,4,3};
-	
-	private GameType type;
-	
+		
+	private final Generator shapeGenerator;
 	private Shape curShape;
 	private Shape nextShape;
 	private Shape ghostShape;
 	
-	private int width;
-	private int height;
-	private Cell[][] cells;
+	private final int width;
+	private final int height;
+	private final Cell[][] cells;
 	
 	private int level;
+	private int levelPoints;
+	
 	private int score;
 	private int lines;
 	public int getScore() { return score; }
@@ -44,6 +41,9 @@ public class TetrisGame implements Tetris {
 		this.width = width;
 		this.height = height;
 		this.flashRows = new LinkedList<Integer>();
+		this.shapeGenerator = new Generator(Shape.Type.values());
+		
+		this.level = 1;
 		
 		this.cells = new Cell[this.height][this.width];
 		
@@ -54,29 +54,13 @@ public class TetrisGame implements Tetris {
 		}
 	}
 	
-	public void initialise(GameType type, int lines) {
-		this.type = type;
+	public void initialise() {
+		this.curShape = shapeGenerator.next();
+		this.nextShape = shapeGenerator.next();
 		
-		this.curShape = Shape.GenerateRand();
-		this.nextShape = Shape.GenerateRand();
+		//type B has been removed, look at source history for info
+		
 		updateGhostShape();
-		
-		if (type == GameType.TYPE_B) {
-			//generate the random lines for type B
-			Random randomNumGen = new Random();
-			int cellsCount = lines*5;
-
-			for (int i=0; i <cellsCount; i++) {
-				int tempX = (randomNumGen.nextInt(this.width));
-				int tempY = (randomNumGen.nextInt(lines) + this.height - lines);
-				if (isCellFilled(tempX, tempY)) {
-					i--;
-				} else { //place :D
-					fillCell(tempX, tempY, new CellColour(0,0,0,1));
-				}
-			}
-		}
-		
 		resetDropTimer();
 	}
 	
@@ -94,7 +78,12 @@ public class TetrisGame implements Tetris {
 		}
 	}
 	private void resetDropTimer() {
-		this.dropTimer = (SPEED_LIST[this.level]/60f);
+		this.dropTimer = gravityCalc(this.level);
+	}
+	/** get gravity by level in seconds */
+	private static float gravityCalc(int level) {
+		//TODO this needs to rounded to the nearest frame
+		return (float) Math.pow(0.8f-((level-1)*0.007f), level-1);
 	}
 	
 	public LinkedList<Cell> curShapeCells() {
@@ -181,12 +170,12 @@ public class TetrisGame implements Tetris {
 	}
 
 	@Override
-	public void rotate(boolean left) {
+	public void rotate(boolean right) {
 		if (curShape == null || this.ended)
 			return;
 
 		Shape newState = this.curShape.clone();
-		newState = ShapeRotator.rotate(newState, left, (s) -> {
+		newState = ShapeRotator.rotate(newState, right, (s) -> {
 			return isValidMove(s);
 		});
 		
@@ -238,9 +227,7 @@ public class TetrisGame implements Tetris {
 	 * Trigger this method when the ui code is done with showing the line.
 	 */
 	public void triggerLineEnd() {
-		this.score += computeLineScore(flashRows.size());
-		this.lines += flashRows.size();
-		this.level = this.lines/10;
+		updateByLines(flashRows.size());
 		
 		for (Integer i: flashRows)
 			removeRow(i);
@@ -253,7 +240,7 @@ public class TetrisGame implements Tetris {
 	private void spawnNextBlock() {
 		//generate the next shapes
 		this.curShape = this.nextShape;
-		this.nextShape = Shape.GenerateRand();
+		this.nextShape = shapeGenerator.next();
 		
 		for (Cell c: this.curShape.getCells()) {
 			if (isCellFilled(c.getX(), c.getY())) {
@@ -301,23 +288,36 @@ public class TetrisGame implements Tetris {
 		}
 	}
 	
-	private int computeLineScore(int lines) {
-		int lineScore = 0;
+	private void updateByLines(int lines) {
+		this.lines += lines;
+		
+		//http://tetris.wikia.com/wiki/Scoring#Guideline_scoring_system
 		switch (lines) {
-		case 1:
-			lineScore = 40*(this.level+1);
+		case 1: //single
+			this.score += 100*this.level;
+			this.levelPoints += 1;
 			break;
-		case 2:
-			lineScore = 100*(this.level+1);
+		case 2: //double
+			this.score += 100*this.level;
+			this.levelPoints += 3;
 			break;
-		case 3:
-			lineScore = 300*(this.level+1);
+		case 3: //triple
+			this.score += 500*this.level;
+			this.levelPoints += 5;
 			break;
-		case 4:
-			lineScore = 1200*(this.level+1);
+		case 4: //tetris
+			this.score += 800*this.level;
+			this.levelPoints += 8;
 			break;
 		}
-		return lineScore;
+		
+		//update level based on levelPoints
+		while (this.levelPoints > this.level*5) {
+			this.levelPoints -= this.level*5;
+			this.level++;
+		}
+		
+		this.level = Math.min(this.level, 20); //prevent a higher level than 20
 	}
 	
 	//assumes the row given is valid
@@ -357,6 +357,6 @@ public class TetrisGame implements Tetris {
 	
 	@Override
 	public String toString() {
-		return this.type+" " + this.curShape.type + " " + this.score + " " + this.lines;
+		return "Tetris: " + this.score + " " + this.lines + " " + this.curShape.type;
 	}
 }
