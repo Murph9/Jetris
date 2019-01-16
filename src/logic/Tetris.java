@@ -9,7 +9,7 @@ public interface Tetris {
 	
 	public List<Cell> curShapeCells();
 	public List<Cell> ghostShapeCells();
-	public List<Cell> nextShapeCells();
+	public List<Cell> nextShapeCells(int i);
 	public Cell getCell(int x, int y);
 	
 	public int getScore();

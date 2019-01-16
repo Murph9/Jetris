@@ -11,7 +11,7 @@ public class TetrisGame implements Tetris {
 	}
 	private final Generator shapeGenerator;
 	private Shape curShape;
-	private Shape nextShape;
+	private final Shape[] nextShapes;
 	private Shape ghostShape;
 	
 	private final int width;
@@ -41,11 +41,12 @@ public class TetrisGame implements Tetris {
 	private boolean ended;
 	public boolean isGameOver() { return ended; }
 	
-	public TetrisGame(int width, int height) {
+	public TetrisGame(int width, int height, int nextShapes) {
 		this.width = width;
 		this.height = height;
 		this.flashRows = new LinkedList<Integer>();
 		this.shapeGenerator = new Generator(Shape.Type.values());
+		this.nextShapes = new Shape[nextShapes];
 		
 		this.level = 1;
 		
@@ -60,7 +61,9 @@ public class TetrisGame implements Tetris {
 	
 	public void initialise() {
 		this.curShape = shapeGenerator.next();
-		this.nextShape = shapeGenerator.next();
+		for (int i = 0; i < this.nextShapes.length; i++) {
+			this.nextShapes[i] = shapeGenerator.next();
+		}
 		
 		//type B has been removed, look at source history for info
 		
@@ -93,8 +96,8 @@ public class TetrisGame implements Tetris {
 	public LinkedList<Cell> curShapeCells() {
 		return new LinkedList<>(this.curShape.shapeCells);
 	}
-	public LinkedList<Cell> nextShapeCells() {
-		return new LinkedList<>(this.nextShape.shapeCells);
+	public LinkedList<Cell> nextShapeCells(int i) {
+		return new LinkedList<>(this.nextShapes[i].shapeCells);
 	}
 	public LinkedList<Cell> ghostShapeCells() {
 		return new LinkedList<>(this.ghostShape.shapeCells);
@@ -233,8 +236,11 @@ public class TetrisGame implements Tetris {
 	
 	private void spawnNextBlock() {
 		//generate the next shapes
-		this.curShape = this.nextShape;
-		this.nextShape = shapeGenerator.next();
+		this.curShape = this.nextShapes[0];
+		for (int i = 1; i < this.nextShapes.length; i++) {
+			this.nextShapes[i-1] = this.nextShapes[i];
+		}
+		this.nextShapes[this.nextShapes.length - 1] = shapeGenerator.next();
 		
 		for (Cell c: this.curShape.getCells()) {
 			if (isCellFilled(c.getX(), c.getY())) {

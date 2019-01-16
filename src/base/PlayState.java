@@ -41,7 +41,7 @@ public class PlayState extends BaseAppState {
 	
 	private Material defaultMat;
 	private Material defaultMeshMat;
-		
+	
 	private Node rootNode;
 	private Tetris game;
 	
@@ -50,8 +50,7 @@ public class PlayState extends BaseAppState {
 	private BitmapText level;
 	
 	private HashMap<Cell, Geometry> cellMap;
-	//private HashMap<Cell, Geometry> nextCellMap;
-	private List<HashMap<Cell, Geometry>> nextShapes; //TODO: rename nextCellMaps
+	private List<HashMap<Cell, Geometry>> nextCellMaps;
 	private List<Geometry> ghostGeos;
 	
 	private Keys keys;
@@ -74,7 +73,7 @@ public class PlayState extends BaseAppState {
 		defaultMeshMat.getAdditionalRenderState().setWireframe(true);
 		defaultMeshMat.getAdditionalRenderState().setLineWidth(4);
 		
-		this.game = new TetrisGame(X_SIZE, Y_SIZE);
+		this.game = new TetrisGame(X_SIZE, Y_SIZE, NEXT_SHAPE_COUNT);
 		
 		this.rootNode = new Node("game node");
 		this.rootNode.setQueueBucket(Bucket.Gui);
@@ -137,7 +136,7 @@ public class PlayState extends BaseAppState {
 		
 		//Init the next piece preview (trying to write this generic so it can be used later when the logic class supports it)
 		//pieces always spawn between x[3-6] and y[0,1] so thats how big it is
-		nextShapes = new ArrayList<HashMap<Cell, Geometry>>(NEXT_SHAPE_COUNT);
+		nextCellMaps = new ArrayList<HashMap<Cell, Geometry>>(NEXT_SHAPE_COUNT);
 		for (int i = 0; i < NEXT_SHAPE_COUNT; i++) {
 			Vector3f nextCenter = new Vector3f(screenWidth - cellSpacing*5, screenHeight/2 - 2.5f*i*cellSpacing - cellSpacing, 0); //top/right side hopefully (going down)
 			
@@ -152,7 +151,7 @@ public class PlayState extends BaseAppState {
 					rootNode.attachChild(g);
 				}
 			}
-			nextShapes.add(nextShape);
+			nextCellMaps.add(nextShape);
 		}
 		
 		
@@ -249,12 +248,15 @@ public class PlayState extends BaseAppState {
 		}
 		//show next piece
 		//TODO more than one next piece
-		for (Geometry g: this.nextShapes.get(0).values()) {
-			g.setMaterial(defaultMat);
-		}
-		for (Cell c: game.nextShapeCells()) {
-			Geometry g = this.nextShapes.get(0).get(c);
-			setColorFromCell(g, c);
+		
+		for (int i = 0 ; i < NEXT_SHAPE_COUNT; i++) {
+			for (Geometry g: this.nextCellMaps.get(i).values()) {
+				g.setMaterial(defaultMat);
+			}
+			for (Cell c: game.nextShapeCells(i)) {
+				Geometry g = this.nextCellMaps.get(i).get(c);
+				setColorFromCell(g, c);
+			}
 		}
 		
 		//update the special ghost block geometries
