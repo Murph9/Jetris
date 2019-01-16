@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.jme3.app.Application;
+import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.asset.AssetManager;
 import com.jme3.font.BitmapFont;
@@ -21,7 +22,6 @@ import com.jme3.scene.shape.Box;
 import logic.Cell;
 import logic.CellColour;
 import logic.Tetris;
-import logic.Tetris.GameType;
 import logic.TetrisGame;
 
 public class PlayState extends BaseAppState {
@@ -33,8 +33,6 @@ public class PlayState extends BaseAppState {
 	private static int Y_HIDDEN = 1; //stupid tetris spec
 	
 	private final Main main;
-	private final GameType type;
-	private final int bCount;
 	
 	private Material defaultMat;
 	private Material defaultMeshMat;
@@ -55,10 +53,8 @@ public class PlayState extends BaseAppState {
 	private float flashTimer;
 	private float gameOverTimer;
 	
-	public PlayState(Main m, GameType type, int bCount) {
+	public PlayState(Main m) {
 		this.main = m;
-		this.type = type;
-		this.bCount = bCount;
 	}
 	
 	public void initialize(Application app) {
@@ -75,32 +71,32 @@ public class PlayState extends BaseAppState {
 		
 		this.rootNode = new Node("game node");
 		this.rootNode.setQueueBucket(Bucket.Gui);
-		Main.CURRENT.getRootNode().attachChild(rootNode);
+		((SimpleApplication)app).getRootNode().attachChild(rootNode);
 		
 		
-		int screenHeight = Main.CURRENT.getViewPort().getCamera().getHeight();
-		int screenWidth = Main.CURRENT.getViewPort().getCamera().getWidth();
+		int screenHeight = ((SimpleApplication)app).getCamera().getHeight();
+		int screenWidth = ((SimpleApplication)app).getCamera().getWidth();
 
 		BitmapFont font = app.getAssetManager().loadFont("Interface/Fonts/Default.fnt");
 		int fontSize = font.getCharSet().getRenderedSize();
 		this.score = new BitmapText(font, false);
 		this.score.setLocalTranslation(screenWidth - 150, screenHeight - fontSize, 0);
 		this.score.setText("Score: 0");
-		this.score.setColor(ColorRGBA.Black);
+		this.score.setColor(ColorRGBA.White);
 		this.score.setSize(fontSize);
 		this.rootNode.attachChild(this.score);
 		
 		this.lines = new BitmapText(font, false);
 		this.lines.setLocalTranslation(screenWidth - 150, screenHeight - fontSize*2, 0);
 		this.lines.setText("Lines: 0");
-		this.lines.setColor(ColorRGBA.Black);
+		this.lines.setColor(ColorRGBA.White);
 		this.lines.setSize(fontSize);
 		this.rootNode.attachChild(this.lines);
 		
 		this.level = new BitmapText(font, false);
 		this.level.setLocalTranslation(screenWidth - 150, screenHeight - fontSize*3, 0);
 		this.level.setText("Speed: 0");
-		this.level.setColor(ColorRGBA.Black);
+		this.level.setColor(ColorRGBA.White);
 		this.level.setSize(fontSize);
 		this.rootNode.attachChild(this.level);
 		
@@ -111,7 +107,7 @@ public class PlayState extends BaseAppState {
 		
 		this.cellMap = new HashMap<>();
 		doForEachCell((c) -> {
-			ColorRGBA col = ColorRGBA.DarkGray; //nothing
+			ColorRGBA col = ColorRGBA.Black; //nothing
 			Geometry g = initCellBox(app.getAssetManager(), b, col);
 			cellMap.put(c, g);
 			g.setLocalTranslation(cellPosToView(screenHeight, screenWidth, boxSize*2, 2, c.getX(), c.getY()));
@@ -122,7 +118,7 @@ public class PlayState extends BaseAppState {
 		for (int i = 3; i < 7; i++) {
 			for (int j = 0; j < 3; j++) {
 				Cell c = game.getCell(i, j);
-				ColorRGBA col = ColorRGBA.DarkGray; //nothing
+				ColorRGBA col = ColorRGBA.Black; //nothing
 				Geometry g = initCellBox(app.getAssetManager(), b, col);
 				nextCellMap.put(c, g);
 				g.setLocalTranslation(nextCellPosToView(screenHeight, screenWidth, boxSize*2, 2, c.getX(), c.getY()));
@@ -144,7 +140,7 @@ public class PlayState extends BaseAppState {
 		this.keys = new Keys(this);
 		app.getInputManager().addRawInputListener(keys);
 		
-		this.game.initialise(this.type, this.bCount);
+		this.game.initialise();
 	}
 	
 	private Geometry initCellBox(AssetManager am, Box b, ColorRGBA c) {
@@ -183,10 +179,10 @@ public class PlayState extends BaseAppState {
 				game.moveSide(false);
 				break;
 			case "RotateLeft":
-				game.rotate(true);
+				game.rotate(false);
 				break;
 			case "RotateRight":
-				game.rotate(false);
+				game.rotate(true);
 				break;
 		}
 	}
@@ -198,7 +194,7 @@ public class PlayState extends BaseAppState {
 		if (game.isGameOver()) {
 			gameOverTimer -= tpf;
 			if (gameOverTimer < 0)
-				main.gameLost(type, this.bCount, new Record(game.getScore(), game.getLinesCount()));
+				main.gameLost(new Record(game.getScore(), game.getLinesCount()));
 			
 			return;
 		}
@@ -330,7 +326,7 @@ public class PlayState extends BaseAppState {
 
 	@Override
 	protected void cleanup(Application app) {
-		Main.CURRENT.getRootNode().detachChild(rootNode);
+		((SimpleApplication)app).getRootNode().detachChild(rootNode);
 	}
 	@Override
 	protected void onEnable() {}

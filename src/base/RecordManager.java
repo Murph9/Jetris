@@ -13,30 +13,28 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
-import logic.Tetris.GameType;
-
 public class RecordManager {
 	
 	private static final String FOLDER = System.getProperty("user.home")+"/.murph9/tetris/";
 
 	//TODO caching? (on read we don't need to read it again)
 	
-	private static File getFile(GameType type, int bVersion) {
+	private static File getFile(String gameType, int bVersion) {
 		String fileName;
-		if (type == GameType.TYPE_A) {
-			fileName = Paths.get(FOLDER, "A.score").toString(); //leaderboardA.txt
+		if (bVersion == 0) {
+			fileName = Paths.get(FOLDER, gameType+".score").toString(); //leaderboardA.txt
 		} else {
-			fileName = Paths.get(FOLDER, "B" + bVersion + ".score").toString(); //leaderboardBn.txt
+			fileName = Paths.get(FOLDER, gameType + bVersion + ".score").toString(); //leaderboardBn.txt
 		}
 		return new File(fileName);
 	}
 	
-	public static List<Record> getRecords(GameType type, int bVersion) {
+	public static List<Record> getRecords(String gameType, int bVersion) {
 		
 		List<Record> records = new LinkedList<Record>(); //start to read records
 		Scanner scoresScanner = null;
 		try {
-			File saveFile = getFile(type, bVersion);
+			File saveFile = getFile(gameType, bVersion);
 			
 			//create file if it doesn't exist
 			saveFile.getParentFile().mkdirs();//create the directory if it doesn't exist
@@ -64,8 +62,8 @@ public class RecordManager {
 		return records;
 	}
 	
-	public static void saveRecord(Record record, GameType type, int bVersion) {
-		File saveFile = getFile(type, bVersion);
+	public static void saveRecord(Record record, String gameType, int bVersion) {
+		File saveFile = getFile(gameType, bVersion);
 		PrintWriter out = null;
 		try {
 			out = new PrintWriter(new BufferedWriter(new FileWriter(saveFile, true)));
