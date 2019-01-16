@@ -4,15 +4,15 @@ import com.jme3.app.SimpleApplication;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.event.MouseAppState;
 
-import logic.Tetris.GameType;
 
 public class Main extends SimpleApplication {
 
 	public static Main CURRENT = new Main();
 	
 	public static void main(String[] args) {
-		Main app = CURRENT;
-		//app.setShowSettings(false);
+		Main app = new Main();
+		CURRENT = app;
+//		app.setShowSettings(false);
 		app.setDisplayStatView(false); //defaults to on, shows the triangle count and stuff
 		app.start();
 	}
@@ -46,20 +46,20 @@ public class Main extends SimpleApplication {
 		getStateManager().attach(menuState);
 	}
 	
-	public void start(GameType type, int lineCount) {
+	public void startPlay() {
 		getStateManager().detach(menuState);
 		menuState = null;
 		
-		playState = new PlayState(this, type, lineCount);
+		playState = new PlayState(this);
 		getStateManager().attach(playState);
 	}
 	
-	public void gameLost(GameType type, int bLineCount, Record r) {
+	public void gameLost(Record r) {
 		getStateManager().detach(playState);
 		playState = null;
 		
 		//save score
-		RecordManager.saveRecord(r, type, bLineCount);
+		RecordManager.saveRecord(r, "A", 0);
 		
 		menuState = new MenuState(this);
 		getStateManager().attach(menuState);
