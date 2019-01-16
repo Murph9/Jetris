@@ -4,7 +4,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class TetrisGame implements Tetris {
-		
+	
+	//keep hidden due to GRAVITY_DOWN (that should not be public)
+	private enum InputAction {
+		HARD_DOWN, GRAVITY_DOWN, SOFT_DOWN, MOVE_LEFT, MOVE_RIGHT, ROTATE_LEFT, ROTATE_RIGHT;
+	}
 	private final Generator shapeGenerator;
 	private Shape curShape;
 	private Shape nextShape;
@@ -103,89 +107,77 @@ public class TetrisGame implements Tetris {
 	}
 	
 
-	private void timerDown() {
-		this.softCount = 0;
-		if (curShape == null || this.ended)
-			return;
-		
-		Shape newState = this.curShape.clone();
-		newState.translate(0, 1);
-		
-		if (!isValidMove(newState)) {
-			blockHit(); //a down move failed, place in world
-			return;
-		}
-		
-		this.curShape = newState;
-		updateGhostShape();
-	}
-	
-	
-	@Override
-	public void hardDown() {
-		this.softCount = 0;
-		if (curShape == null || this.ended)
-			return;
-		
-		this.softCount = minDrop() - 1;
-		
-		this.curShape.translate(0, this.softCount);
-		
-		this.softCount *= 2; //hard drop gets double points
-		
-		blockHit();
-	}
-	
-	@Override
-	public void softDown() {
-		if (curShape == null || this.ended)
-			return;
-		
-		Shape newState = this.curShape.clone();
-		newState.translate(0, 1);
-		
-		if (!isValidMove(newState)) {
-			blockHit(); //a down move failed, place in world
-			return;
-		}
-		
-		this.softCount++;
-		this.curShape = newState;
-	}
-	
-	@Override
+	public void hardDown() { movePiece(InputAction.HARD_DOWN); }
+	public void softDown() { movePiece(InputAction.SOFT_DOWN); }
+	private void timerDown() { movePiece(InputAction.GRAVITY_DOWN); }
 	public void moveSide(boolean left) {
-		if (curShape == null || this.ended)
-			return;
-		//could return a value if the state changed
-		
-		Shape newState = this.curShape.clone();
-		newState.translate(left ? -1 : 1, 0);
-		
-		if (!isValidMove(newState))
-			return;
-		
-		this.curShape = newState;
-		updateGhostShape();
+		if (left)
+			movePiece(InputAction.MOVE_LEFT);
+		else
+			movePiece(InputAction.MOVE_RIGHT);
 	}
-
-	@Override
 	public void rotate(boolean right) {
-		if (curShape == null || this.ended)
-			return;
-
-		Shape newState = this.curShape.clone();
-		newState = ShapeRotator.rotate(newState, right, (s) -> {
-			return isValidMove(s);
-		});
-		
-		if (!isValidMove(newState))
-			return;
-		
-		this.curShape = newState;
-		updateGhostShape();
+		if (right)
+			movePiece(InputAction.ROTATE_RIGHT);
+		else
+			movePiece(InputAction.ROTATE_LEFT);
 	}
 	
+	private void movePiece(InputAction action) {
+		if (curShape == null || this.ended)
+			return; //TODO add ignore/buffer during line show mode
+		
+		Shape newState = this.curShape.clone();
+		switch (action) {
+		case HARD_DOWN:
+			//hard down is special, if always works and always causes the block to lock
+			this.softCount = minDrop() - 1;
+			newState.translate(0, this.softCount);
+			this.softCount *= 2; //hard drop gets double points
+			this.curShape = newState;
+			blockHit();
+			return;
+		case SOFT_DOWN:
+			newState.translate(0, 1);
+			this.softCount++;
+			//reset gravity timer?
+			break;
+		case GRAVITY_DOWN:
+			newState.translate(0, 1);
+			this.softCount = 0;
+			break;
+		case MOVE_LEFT:
+			newState.translate(-1, 0);
+			this.softCount = 0;
+			break;
+		case MOVE_RIGHT:
+			newState.translate(1, 0);
+			this.softCount = 0;
+			break;
+		case ROTATE_LEFT:
+			newState = ShapeRotator.rotate(newState, true, (s) -> {
+				return isValidMove(s);
+			});
+			this.softCount = 0;
+			break;
+		case ROTATE_RIGHT:
+			newState = ShapeRotator.rotate(newState, false, (s) -> {
+				return isValidMove(s);
+			});
+			this.softCount = 0;
+			break;
+		}
+		
+		if (!isValidMove(newState)) {
+			if (action == InputAction.SOFT_DOWN)
+				blockHit(); //a down move failed, lock in place
+			return;
+		}
+		
+		//valid move, so update curShape
+		this.curShape = newState;
+		updateGhostShape();
+	}
 	
 	private boolean isValidMove(Shape nextState) {
 		for (Cell c: nextState.getCells()) {
