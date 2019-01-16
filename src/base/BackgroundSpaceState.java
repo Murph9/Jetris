@@ -20,6 +20,7 @@ import com.jme3.util.BufferUtils;
 public class BackgroundSpaceState extends BaseAppState {
 
 	//http://guidohenkel.com/2018/05/endless_starfield_unity/
+	//TODO particles are in front of everything, probably because this is added to GUI node first
 	
 	private Node rootNode;
 

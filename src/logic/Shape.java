@@ -3,15 +3,13 @@ package logic;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.Random;
 
 import logic.ShapeRotator.KickType;
-
 
 public class Shape {
 	
 	public enum Type {
-		I,T,O,S,Z,J,L,NONE;
+		I,T,O,S,Z,J,L;
 	}
 	public enum Rotation {
 		NONE(0), RIGHT(1), DOUBLE(2), LEFT(3);
@@ -36,33 +34,29 @@ public class Shape {
 		}
 	}
 	
-	private static final Type TYPES[] = Type.values();
 	private static final Map<Type, CellColour> TYPE_COLOUR;
 	static {
 		TYPE_COLOUR = new HashMap<>();
-		TYPE_COLOUR.put(Type.I, new CellColour(0f, 0.8f, 0.8f, 1f));
-		TYPE_COLOUR.put(Type.O, new CellColour(0.8f, 0.8f, 0f, 1f));
-		TYPE_COLOUR.put(Type.T, new CellColour(0.8f, 0f, 0.8f, 1f));
-		TYPE_COLOUR.put(Type.S, new CellColour(0f, 0.8f, 0f, 1f));
-		TYPE_COLOUR.put(Type.Z, new CellColour(0.8f, 0f, 0f, 1f));
-		TYPE_COLOUR.put(Type.J, new CellColour(0f, 0f, 0.8f, 1f));
-		TYPE_COLOUR.put(Type.L, new CellColour(0.8f*251f / 255f, 0.8f*130f / 255f, 0f, 1f));
+		TYPE_COLOUR.put(Type.I, new CellColour(0.24706f, 0.66275f, 0.81569f, 1f));
+		TYPE_COLOUR.put(Type.O, new CellColour(0.94902f, 0.77255f, 0.13333f, 1f));
+		TYPE_COLOUR.put(Type.T, new CellColour(0.79216f, 0.43137f, 0.72549f, 1f)); //"purple"
+		TYPE_COLOUR.put(Type.S, new CellColour(0.40000f, 0.59608f, 0.24706f, 1f));
+		TYPE_COLOUR.put(Type.Z, new CellColour(0.69804f, 0.30588f, 0.27059f, 1f));
+		TYPE_COLOUR.put(Type.J, new CellColour(0.00392f, 0.31373f, 0.71765f, 1f));
+		TYPE_COLOUR.put(Type.L, new CellColour(0.83137f, 0.44314f, 0.07451f, 1f));
 	}
 	
-	private static Random rand = new Random();
-	public static Shape GenerateRand() {
+	public static Shape getNew(Type t) {
 		//info from: http://tetris.wikia.com/wiki/SRS
-		Shape shape = null;
-		Type t = TYPES[rand.nextInt(7)]; //TODO 'bag' random
 		switch (t) {//I, O, T, S, Z, J, and L
 			case I:
-				shape = new Shape(t, KickType.OTHER);
+				Shape shape = new Shape(t, KickType.OTHER);
 				shape.addCell(new Cell(3,0)); //    
 				shape.addCell(new Cell(4,0));
 				shape.addCell(new Cell(5,0));
 				shape.addCell(new Cell(6,0));
 				shape.setCentre(4.5f, 0.5f);
-				break;
+				return shape;
 			case O:
 				shape = new Shape(t, KickType.OTHER); //doesn't matter what kick type and I looked lonely
 				shape.addCell(new Cell(4,0)); //  
@@ -70,7 +64,7 @@ public class Shape {
 				shape.addCell(new Cell(4,1));
 				shape.addCell(new Cell(5,1));
 				shape.setCentre(4.5f, 0.5f); //technically nothing
-				break;
+				return shape;
 			case T:
 				shape = new Shape(t, KickType.NORMAL);
 				shape.addCell(new Cell(3,1)); //   
@@ -78,7 +72,7 @@ public class Shape {
 				shape.addCell(new Cell(4,1));
 				shape.addCell(new Cell(5,1));
 				shape.setCentre(4, 1);
-				break;
+				return shape;
 			case S:
 				shape = new Shape(t, KickType.NORMAL);
 				shape.addCell(new Cell(3,1)); //    
@@ -86,7 +80,7 @@ public class Shape {
 				shape.addCell(new Cell(4,1));
 				shape.addCell(new Cell(5,0));
 				shape.setCentre(4, 1);
-				break;
+				return shape;
 			case Z:
 				shape = new Shape(t, KickType.NORMAL);
 				shape.addCell(new Cell(5,1)); //  
@@ -94,7 +88,7 @@ public class Shape {
 				shape.addCell(new Cell(4,1));
 				shape.addCell(new Cell(3,0));
 				shape.setCentre(4, 1);
-				break;
+				return shape;
 			case J:
 				shape = new Shape(t, KickType.NORMAL);
 				shape.addCell(new Cell(3,0)); // 
@@ -102,7 +96,7 @@ public class Shape {
 				shape.addCell(new Cell(4,1));
 				shape.addCell(new Cell(5,1));
 				shape.setCentre(4, 1);
-				break;
+				return shape;
 			case L:
 				shape = new Shape(t, KickType.NORMAL);
 				shape.addCell(new Cell(3,1)); //     
@@ -110,12 +104,11 @@ public class Shape {
 				shape.addCell(new Cell(5,0));
 				shape.addCell(new Cell(5,1));
 				shape.setCentre(4, 1);
-				break;
+				return shape;
 			default:
 				//TODO log pls
-				break;
+				return null;
 		}
-		return shape;
 	}
 	
 	////////////////////////////
