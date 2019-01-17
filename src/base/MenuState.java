@@ -63,7 +63,7 @@ public class MenuState extends BaseAppState {
 		List<Record> records = RecordManager.getRecords("A", 0);
 		for (int i = 0; i < Math.min(records.size(), 10); i++) {
 			Record r = records.get(i);
-			myWindow.addChild(new Label(r.getScore() + ""), 2 + i, 0);
+			myWindow.addChild(new Label(r.getScore() + (r.isNew() ? "*" : "")), 2 + i, 0);
 			myWindow.addChild(new Label(r.getLineCount() + ""), 2 + i, 1);
 		}
 	}

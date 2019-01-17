@@ -17,6 +17,8 @@ public class RecordManager {
 	
 	private static final String FOLDER = System.getProperty("user.home")+"/.murph9/tetris/";
 
+	private static Record lastRecord;
+	
 	//TODO caching? (on read we don't need to read it again)
 	
 	private static File getFile(String gameType, int bVersion) {
@@ -44,7 +46,10 @@ public class RecordManager {
 			FileReader reader = new FileReader(saveFile);
 			scoresScanner = new Scanner(reader);
 			while(scoresScanner.hasNext()) {
-				records.add(new Record(scoresScanner.nextInt(), scoresScanner.nextInt()));
+				Record rec = new Record(scoresScanner.nextInt(), scoresScanner.nextInt());
+				if (rec.equals(lastRecord))
+					rec.setIsNew(true);
+				records.add(rec);
 			}
 			
 		} catch (FileNotFoundException e) {
@@ -63,6 +68,8 @@ public class RecordManager {
 	}
 	
 	public static void saveRecord(Record record, String gameType, int bVersion) {
+		lastRecord = record;
+		
 		File saveFile = getFile(gameType, bVersion);
 		PrintWriter out = null;
 		try {

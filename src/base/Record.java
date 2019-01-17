@@ -3,10 +3,18 @@ package base;
 public class Record implements Comparable<Record> {
 	private int score;
 	private int lineCount;
+	private boolean isNew;
 	
 	Record (int score, int lineCount) {
 		this.score = score;
 		this.lineCount = lineCount;
+	}
+	
+	public void setIsNew(boolean in)	{
+		isNew = in;
+	}
+	public boolean isNew() {
+		return isNew;
 	}
 	
 	public int getScore() {
@@ -26,10 +34,7 @@ public class Record implements Comparable<Record> {
 		if (o == this) return true;
 		Record in = (Record) o;
 		
-		if (score == in.score && lineCount == in.lineCount) {
-			return true;
-		}
-		return false;
+		return (score == in.score && lineCount == in.lineCount);
 	}
 	
 	public int compareTo(Record other){ 
