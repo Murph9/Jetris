@@ -4,6 +4,8 @@ import java.util.Random;
 
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
+import com.jme3.scene.Mesh;
+import com.jme3.scene.VertexBuffer.Type;
 
 import logic.CellColour;
 
@@ -64,5 +66,24 @@ public class H {
 		float offset = scaleNegative ? max : 0;
 		float scale = scaleNegative ? 2 : 1;
 		return new Vector3f(FastMath.nextRandomFloat()*scale*max-offset, FastMath.nextRandomFloat()*scale*max-offset, FastMath.nextRandomFloat()*scale*max-offset);
+	}
+	
+	/**The quad is always created in the XY plane.*/
+	public static Mesh quadCenteredSquare(float size) {
+		return quadCentered(size, size);
+	}
+	/**The quad is always created in the XY plane.*/
+	public static Mesh quadCentered(float xSize, float ySize) {
+		Mesh m = new Mesh();
+		m.setBuffer(Type.Position, 3, new float[] {
+			-xSize, -ySize, 0,
+			xSize,  -ySize, 0,
+			xSize,  ySize,  0,
+            -xSize, ySize,  0
+        });
+		m.setBuffer(Type.Index, 3, new short[]{0, 1, 2, 0, 2, 3});
+		m.updateBound();
+		m.setStatic();
+		return m;
 	}
 }

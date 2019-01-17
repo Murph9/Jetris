@@ -7,22 +7,25 @@ import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.material.Material;
-import com.jme3.material.RenderState.FaceCullMode;
+import com.jme3.material.RenderState.BlendMode;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
 import com.jme3.scene.VertexBuffer.Type;
 import com.jme3.util.BufferUtils;
 
-public class BackgroundSpaceState extends BaseAppState {
+public class BackgroundState extends BaseAppState {
 
 	//http://guidohenkel.com/2018/05/endless_starfield_unity/
 	//TODO particles are in front of everything, probably because this is added to GUI node first
-	
+
 	private Node rootNode;
+	private Node rootGUINode;
 
 	private Mesh mesh;
 	private List<Vector3f> particles;
@@ -32,20 +35,20 @@ public class BackgroundSpaceState extends BaseAppState {
 	private int height;
 	private int width;
 	
-	public BackgroundSpaceState(int particleCount) {
+	public BackgroundState(int particleCount) {
 		this.count = particleCount;
 	}
 	
 	@Override
 	protected void initialize(Application app) {
-		rootNode = new Node("Background space node");
 		
 		SimpleApplication sm = (SimpleApplication)app;
-		sm.getViewPort().setBackgroundColor(ColorRGBA.Black);
 		
-		sm.getCamera().setLocation(new Vector3f());
-		sm.getCamera().lookAt(new Vector3f(1,0,0), Vector3f.UNIT_Y);
-		sm.getGuiNode().attachChild(rootNode); //TODO don't use gui node
+		rootNode = new Node("Background root node");
+		sm.getRootNode().attachChild(rootNode);
+		
+		rootGUINode = new Node("Background gui root node");
+		sm.getGuiNode().attachChild(rootGUINode); //TODO don't use gui node
 		
 		height = sm.getCamera().getHeight();
 		width = sm.getCamera().getWidth();
@@ -71,9 +74,36 @@ public class BackgroundSpaceState extends BaseAppState {
 		Geometry geo = new Geometry("particles", mesh); // using our custom mesh object
 		Material mat = new Material(sm.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
 		mat.setColor("Color", ColorRGBA.White);
-		mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
 		geo.setMaterial(mat);
-		rootNode.attachChild(geo);
+		rootGUINode.attachChild(geo);
+
+
+		//generate play field sized quad for the field background
+		float xSize = CellHelper.fieldWidth(height, PlayState.X_SIZE/2, (PlayState.Y_SIZE-PlayState.Y_HIDDEN)/2)/2f;
+		
+		Vector3f worldPos0 = sm.getCamera().getWorldCoordinates(new Vector2f(width/2f-xSize, 0), 0);
+		Vector3f worldPos1 = sm.getCamera().getWorldCoordinates(new Vector2f(width/2f+xSize, 0), 0);
+		Vector3f worldPos2 = sm.getCamera().getWorldCoordinates(new Vector2f(width/2f+xSize, height), 0);
+		Vector3f worldPos3 = sm.getCamera().getWorldCoordinates(new Vector2f(width/2f-xSize, height), 0);
+		//TODO: BufferUtils.addInBuffer
+		Mesh m = new Mesh();
+		m.setBuffer(Type.Position, 3, new float[] {
+			worldPos0.x, worldPos0.y, worldPos0.z,
+			worldPos1.x, worldPos1.y, worldPos1.z,
+			worldPos2.x, worldPos2.y, worldPos2.z,
+            worldPos3.x, worldPos3.y, worldPos3.z
+        });
+		m.setBuffer(Type.Index, 3, new short[]{0, 1, 2, 0, 2, 3});
+		m.updateBound();
+		m.setStatic();
+		
+		Geometry g = new Geometry("background", m);
+		mat = new Material(sm.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+		mat.setColor("Color", new ColorRGBA(1,1,1,0.08f));
+		mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+		g.setMaterial(mat);
+		g.setQueueBucket(Bucket.Transparent);
+		rootNode.attachChild(g);
 	}
 
 	@Override
@@ -90,7 +120,8 @@ public class BackgroundSpaceState extends BaseAppState {
 	@Override
 	protected void cleanup(Application app) {
 		SimpleApplication sm = (SimpleApplication)app;
-		sm.getGuiNode().detachChild(rootNode);
+		sm.getGuiNode().detachChild(rootGUINode);
+		sm.getRootNode().detachChild(rootNode);
 	}
 
 	@Override

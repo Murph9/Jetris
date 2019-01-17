@@ -11,12 +11,17 @@ import com.simsilica.lemur.Button;
 import com.simsilica.lemur.Command;
 import com.simsilica.lemur.Container;
 import com.simsilica.lemur.Label;
+import com.simsilica.lemur.component.BorderLayout;
+import com.simsilica.lemur.component.BorderLayout.Position;
 
 public class MenuState extends BaseAppState {
 
 	//TODO settings
+	//TODO info page
 	private Node rootNode;
 	private Main main;
+	
+	private Container mainWindow;
 	
 	public MenuState(Main m) {
 		main = m;
@@ -28,30 +33,28 @@ public class MenuState extends BaseAppState {
 		//init gui
 		//info window first so the event listeners can delete it
 		this.rootNode = new Node("menu node");
-		((SimpleApplication)app).getGuiNode().attachChild(rootNode);
+		SimpleApplication sa = (SimpleApplication)app;
+		sa.getGuiNode().attachChild(rootNode);
 		
-		Container myWindow = new Container();
-		rootNode.attachChild(myWindow);
-		myWindow.setLocalTranslation(screenTopLeft());
-		myWindow.addChild(new Label("Choose Map"), 0, 0);
+		Vector3f pos = new Vector3f(0, sa.getCamera().getHeight(), 0);
+		
+		mainWindow = new Container(new BorderLayout());
+		mainWindow.setLocalTranslation(pos);
+		rootNode.attachChild(mainWindow);
+		
+		Container buttonWindow = new Container();
+		mainWindow.addChild(buttonWindow, Position.North);
 
-		Button typeA = myWindow.addChild(new Button("Start"), 1, 0);
-		typeA.addClickCommands(new Command<Button>() {
+		Button start = buttonWindow.addChild(new Button("Start"));
+		start.addClickCommands(new Command<Button>() {
             @Override
             public void execute( Button source ) {
             	triggerSomething();
             }
         });
 		
-		addLeaderboard();
-	}
-	
-	private void addLeaderboard() {
-		//TODO typeA only for now
-		
 		Container myWindow = new Container();
-		rootNode.attachChild(myWindow);
-		myWindow.setLocalTranslation(screenMiddle());
+		mainWindow.addChild(myWindow, Position.Center);
 		myWindow.addChild(new Label("Leaderboard:"), 0, 0);
 		
 		myWindow.addChild(new Label("Score"), 1, 0);
@@ -78,14 +81,4 @@ public class MenuState extends BaseAppState {
 	protected void onEnable() {}
 	@Override
 	protected void onDisable() {}
-	
-	private static Vector3f screenTopLeft() {
-		return new Vector3f(0, Main.CURRENT.getViewPort().getCamera().getHeight(), 0);
-	}
-	private static Vector3f screenBottomRight() {
-		return new Vector3f(Main.CURRENT.getViewPort().getCamera().getWidth(), Main.CURRENT.getViewPort().getCamera().getHeight(), 0);
-	}
-	public static Vector3f screenMiddle() {
-		return screenBottomRight().mult(0.5f);
-	}
 }
