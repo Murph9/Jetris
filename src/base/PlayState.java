@@ -34,6 +34,9 @@ public class PlayState extends BaseAppState {
 	public static final int Y_HIDDEN = 1; //stupid tetris spec requires a half-hidden row at the top
 	public static final int NEXT_SHAPE_COUNT = 3;
 	
+	//http://tetris.wikia.com/wiki/Line_clear#Delay
+	private static final float LINE_DELAY = 0.5f; //units: sec (TODO should be logic side)
+	
 	private static ColorRGBA DEFAULT_CELL_COLOR = ColorRGBA.BlackNoAlpha;
 	private static Vector3f POS_OFFSCREEN = new Vector3f(-100, -100, 0);
 	
@@ -275,7 +278,7 @@ public class PlayState extends BaseAppState {
 		if (game.newLine()) {
 			if (flashTimer == 0) {
 				//trigger graphics for getting a line
-				flashTimer = 0.4f; //units: sec
+				flashTimer = LINE_DELAY;
 				
 			} else {
 				flashTimer -= tpf;
