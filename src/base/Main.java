@@ -1,6 +1,8 @@
 package base;
 
 import com.jme3.app.SimpleApplication;
+import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector3f;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.event.MouseAppState;
 
@@ -20,11 +22,14 @@ public class Main extends SimpleApplication {
 	private MenuState menuState;
 	private PlayState playState;
 	
-	private BackgroundSpaceState spaceState;
+	private BackgroundState spaceState;
 	
 	@Override
 	public void simpleInitApp() {
-		//remove the default esc exit
+		//remove the default keys
+		inputManager.deleteMapping(SimpleApplication.INPUT_MAPPING_HIDE_STATS);
+		inputManager.deleteMapping(SimpleApplication.INPUT_MAPPING_CAMERA_POS); //TODO doesn't work
+		inputManager.deleteMapping(SimpleApplication.INPUT_MAPPING_MEMORY);
 		inputManager.deleteMapping(SimpleApplication.INPUT_MAPPING_EXIT);
 		
 		//engine disables
@@ -36,9 +41,14 @@ public class Main extends SimpleApplication {
 		LemurGuiStyle.load(assetManager);
 		//Init the lemur mouse listener
 		getStateManager().attach(new MouseAppState(this));
+
+		//some camera state stuff
+		getCamera().setLocation(new Vector3f());
+		getCamera().lookAt(new Vector3f(1,0,0), Vector3f.UNIT_Y);
+		getViewPort().setBackgroundColor(ColorRGBA.Black);
 		
 		//spaceState init
-		spaceState = new BackgroundSpaceState(100);
+		spaceState = new BackgroundState(100);
 		getStateManager().attach(spaceState);
 		
 		//start game

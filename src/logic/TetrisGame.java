@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class TetrisGame implements Tetris {
+	//TODO bug when double presing space placing a piece when finishing a line
 	
 	//keep hidden due to GRAVITY_DOWN (that should not be public)
 	private enum InputAction {
@@ -89,7 +90,7 @@ public class TetrisGame implements Tetris {
 	}
 	/** get gravity by level in seconds */
 	private static float gravityCalc(int level) {
-		//TODO this needs to rounded to the nearest frame
+		//TODO this needs to rounded to the nearest frame (its currently one frame longer)
 		return (float) Math.pow(0.8f-((level-1)*0.007f), level-1);
 	}
 	
@@ -104,7 +105,6 @@ public class TetrisGame implements Tetris {
 	}
 	
 	private void updateGhostShape() {
-		//TODO this method is a slow clone and move, it could be smarter
 		this.ghostShape = this.curShape.clone();
 		this.ghostShape.translate(0, minDrop() - 1);
 	}

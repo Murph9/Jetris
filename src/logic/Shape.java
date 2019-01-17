@@ -106,7 +106,6 @@ public class Shape {
 				shape.setCentre(4, 1);
 				return shape;
 			default:
-				//TODO log pls
 				return null;
 		}
 	}

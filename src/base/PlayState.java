@@ -12,13 +12,13 @@ import com.jme3.asset.AssetManager;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState.BlendMode;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
-import com.jme3.scene.shape.Box;
 
 import logic.Cell;
 import logic.CellColour;
@@ -29,12 +29,12 @@ public class PlayState extends BaseAppState {
 	//manage the playing state of the game, the grid/preview and displaying it
 	//yes its a lot but its not a large game [yet]
 	
-	private static int X_SIZE = 10;
-	private static int Y_SIZE = 21;
-	private static int Y_HIDDEN = 1; //stupid tetris spec
-	private static int NEXT_SHAPE_COUNT = 3;
+	public static final int X_SIZE = 10;
+	public static final int Y_SIZE = 21;
+	public static final int Y_HIDDEN = 1; //stupid tetris spec requires a half-hidden row at the top
+	public static final int NEXT_SHAPE_COUNT = 3;
 	
-	private static ColorRGBA DEFAULT_CELL_COLOR = ColorRGBA.DarkGray;
+	private static ColorRGBA DEFAULT_CELL_COLOR = ColorRGBA.BlackNoAlpha;
 	private static Vector3f POS_OFFSCREEN = new Vector3f(-100, -100, 0);
 	
 	private final Main main;
@@ -53,7 +53,7 @@ public class PlayState extends BaseAppState {
 	private List<HashMap<Cell, Geometry>> nextCellMaps;
 	private List<Geometry> ghostGeos;
 	
-	private Keys keys;
+	protected Keys keys;
 	
 	private float flashTimer;
 	private float gameOverTimer;
@@ -67,6 +67,7 @@ public class PlayState extends BaseAppState {
 		
 		defaultMat = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
 		defaultMat.setColor("Color", DEFAULT_CELL_COLOR);
+		defaultMat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
 
 		defaultMeshMat = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
 		defaultMeshMat.setColor("Color", DEFAULT_CELL_COLOR);
@@ -107,17 +108,15 @@ public class PlayState extends BaseAppState {
 		this.rootNode.attachChild(this.level);
 		
 		//calc play field width:
-		float cellSize = (screenHeight*0.95f)/(Y_SIZE-Y_HIDDEN);
-		float cellMargin = (screenHeight*0.05f)/(Y_SIZE-Y_HIDDEN);
-		float fieldWidth = X_SIZE*cellSize + (X_SIZE+1)*cellMargin;
+		float cellSize = CellHelper.cellSize(screenHeight, Y_SIZE-Y_HIDDEN);
+		float cellMargin = CellHelper.cellMargin(screenHeight, Y_SIZE-Y_HIDDEN);
 		float cellSpacing = cellSize + cellMargin;
 		
-		Box b = new Box(cellSize/2, cellSize/2, cellSize/2);
+		Mesh b = H.quadCenteredSquare(cellSize/2f);
 		
-		//TODO change Box() to custom quad as it should be 'way' faster
 		this.cellMap = new HashMap<>();
 		doForEachCell((c) -> {
-			Geometry g = initCellBox(app.getAssetManager(), b, DEFAULT_CELL_COLOR);
+			Geometry g = initQuad(app.getAssetManager(), DEFAULT_CELL_COLOR, b);
 			g.setLocalTranslation(cellPosToView(screenHeight, screenWidth, c.getX(), c.getY(), cellSpacing));
 			cellMap.put(c, g);
 			rootNode.attachChild(g);
@@ -145,7 +144,7 @@ public class PlayState extends BaseAppState {
 			for (int k = 3; k < 7; k++) { //x[3-6]
 				for (int j = 0; j < 2; j++) { //y[0-1]
 					Cell c = game.getCell(k, j);
-					Geometry g = initCellBox(app.getAssetManager(), b, DEFAULT_CELL_COLOR);
+					Geometry g = initQuad(app.getAssetManager(), DEFAULT_CELL_COLOR, b);
 					nextShape.put(c, g);
 					g.setLocalTranslation(nextCenter.add(shapeCellPosToOffset(c.getX(), c.getY(), cellSpacing)));
 					rootNode.attachChild(g);
@@ -161,15 +160,6 @@ public class PlayState extends BaseAppState {
 		this.game.initialise();
 	}
 	
-	private Geometry initCellBox(AssetManager am, Box b, ColorRGBA c) {
-		Geometry g = new Geometry("thing", b);
-		Material mat = new Material(am, "Common/MatDefs/Misc/Unshaded.j3md");
-		mat.setColor("Color", c);
-		g.setMaterial(mat);
-		return g;
-	}
-	
-	//TODO:
 	private Geometry initQuad(AssetManager am, ColorRGBA c, Mesh b) {
 		Geometry g = new Geometry("thing", b);
 		Material mat = new Material(am, "Common/MatDefs/Misc/Unshaded.j3md");
@@ -246,9 +236,7 @@ public class PlayState extends BaseAppState {
 			Geometry g = this.cellMap.get(c);
 			setColorFromCell(g, c);
 		}
-		//show next piece
-		//TODO more than one next piece
-		
+		//show next pieces
 		for (int i = 0 ; i < NEXT_SHAPE_COUNT; i++) {
 			for (Geometry g: this.nextCellMaps.get(i).values()) {
 				g.setMaterial(defaultMat);
@@ -351,7 +339,7 @@ public class PlayState extends BaseAppState {
 
 		return new Vector3f(
 			offX * cellSpacing + screenWidth / 2f,
-			offY * cellSpacing + screenHeight / 2f, //TODO offset for so you can see the top hidden row
+			offY * cellSpacing + screenHeight / 2f, //TODO offset so you can see the top row a little
 			0
 		);
 	}
