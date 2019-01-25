@@ -54,8 +54,10 @@ public class PlayState extends BaseAppState {
 	private BitmapText level;
 	
 	private HashMap<Cell, Geometry> cellMap;
-	private List<HashMap<Cell, Geometry>> nextCellMaps;
 	private List<Geometry> ghostGeos;
+	
+	private HashMap<Cell, Geometry> holdCellMap;
+	private List<HashMap<Cell, Geometry>> nextCellMaps;
 	
 	protected Keys keys;
 	
@@ -125,7 +127,6 @@ public class PlayState extends BaseAppState {
 			cellMap.put(c, g);
 			rootNode.attachChild(g);
 		});
-				
 		
 		this.ghostGeos = new ArrayList<>(4);
 		for (int i = 0; i < 4; i++) {
@@ -155,6 +156,18 @@ public class PlayState extends BaseAppState {
 				}
 			}
 			nextCellMaps.add(nextShape);
+		}
+		//then the hold shape
+		Vector3f center = new Vector3f(screenWidth - cellSpacing*5, screenHeight/2 + 2.5f*cellSpacing - cellSpacing, 0); //top/right side hopefully (going up)
+		this.holdCellMap = new HashMap<>();
+		for (int k = 3; k < 7; k++) { //x[3-6]
+			for (int j = 0; j < 2; j++) { //y[0-1]
+				Cell c = game.getCell(k, j);
+				Geometry g = initQuad(app.getAssetManager(), DEFAULT_CELL_COLOR, b);
+				holdCellMap.put(c, g);
+				g.setLocalTranslation(center.add(shapeCellPosToOffset(c.getX(), c.getY(), cellSpacing)));
+				rootNode.attachChild(g);
+			}
 		}
 		
 		
@@ -186,7 +199,11 @@ public class PlayState extends BaseAppState {
 			case "Pause":
 				this.setEnabled(!isEnabled());
 				return;
-		
+			
+			case "Hold":
+				game.hold();
+				break;
+
 			case "HardDrop":
 				game.hardDown();
 				break;
@@ -250,6 +267,15 @@ public class PlayState extends BaseAppState {
 				setColorFromCell(g, c);
 			}
 		}
+		//show hold piece
+		for (Geometry g: this.holdCellMap.values()) {
+			g.setMaterial(defaultMat);
+		}
+		for (Cell c: game.holdShapeCells()) {
+			Geometry g = this.holdCellMap.get(c);
+			setColorFromCell(g, c);
+		}
+		
 		
 		//update the special ghost block geometries
 		int geoIndex = 0;

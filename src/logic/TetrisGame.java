@@ -1,19 +1,20 @@
 package logic;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 public class TetrisGame implements Tetris {
-	//TODO bug when double presing space placing a piece when finishing a line
 	
 	//keep hidden due to GRAVITY_DOWN (that should not be public)
 	private enum InputAction {
-		HARD_DOWN, GRAVITY_DOWN, SOFT_DOWN, MOVE_LEFT, MOVE_RIGHT, ROTATE_LEFT, ROTATE_RIGHT;
+		HARD_DOWN, GRAVITY_DOWN, SOFT_DOWN, MOVE_LEFT, MOVE_RIGHT, ROTATE_LEFT, ROTATE_RIGHT, HOLD;
 	}
 	private final Generator shapeGenerator;
-	private Shape curShape;
 	private final Shape[] nextShapes;
+	private Shape curShape;
 	private Shape ghostShape;
+	private Shape holdShape;
 	
 	private final int width;
 	private final int height;
@@ -30,6 +31,7 @@ public class TetrisGame implements Tetris {
 	
 	private int softCount; //as in soft drop counter (technical term for pressing down lots)
 	private float dropTimer; //in milliseconds
+	private boolean pieceHeld; //to set if hold was pressed, to prevent pressing it again
 	
 	private final LinkedList<Integer> flashRows;
 	/**
@@ -94,14 +96,19 @@ public class TetrisGame implements Tetris {
 		return (float) Math.pow(0.8f-((level-1)*0.007f), level-1);
 	}
 	
-	public LinkedList<Cell> curShapeCells() {
+	public List<Cell> curShapeCells() {
 		return new LinkedList<>(this.curShape.shapeCells);
 	}
-	public LinkedList<Cell> nextShapeCells(int i) {
+	public List<Cell> nextShapeCells(int i) {
 		return new LinkedList<>(this.nextShapes[i].shapeCells);
 	}
-	public LinkedList<Cell> ghostShapeCells() {
+	public List<Cell> ghostShapeCells() {
 		return new LinkedList<>(this.ghostShape.shapeCells);
+	}
+	public List<Cell> holdShapeCells() {
+		if (holdShape == null)
+			return Collections.<Cell>emptyList();
+		return new LinkedList<>(this.holdShape.shapeCells);
 	}
 	
 	private void updateGhostShape() {
@@ -109,7 +116,7 @@ public class TetrisGame implements Tetris {
 		this.ghostShape.translate(0, minDrop() - 1);
 	}
 	
-
+	public void hold() { movePiece(InputAction.HOLD); }
 	public void hardDown() { movePiece(InputAction.HARD_DOWN); }
 	public void softDown() { movePiece(InputAction.SOFT_DOWN); }
 	private void timerDown() { movePiece(InputAction.GRAVITY_DOWN); }
@@ -128,6 +135,8 @@ public class TetrisGame implements Tetris {
 	
 	private void movePiece(InputAction action) {
 		if (curShape == null || this.ended)
+			return; 
+		if (this.newLine())
 			return; //TODO add ignore/buffer during line show mode
 		
 		Shape newState = this.curShape.clone();
@@ -138,12 +147,31 @@ public class TetrisGame implements Tetris {
 			newState.translate(0, this.softCount);
 			this.softCount *= 2; //hard drop gets double points
 			this.curShape = newState;
+			//TODO settings call here for harddrop
 			blockHit();
+			return;
+		case HOLD:
+			this.softCount = 0;
+			if (pieceHeld)
+				return;
+			pieceHeld = true;
+			
+			//hold case is special, if hold empty move to hold and go to the next one
+			if (this.holdShape == null) {
+				this.holdShape = Shape.getNew(newState.type); //reset position
+				spawnNextBlock();
+				return;
+			}
+			//else swap with current (reset position)
+			Shape.Type holdType = this.curShape.type;
+			this.curShape = Shape.getNew(this.holdShape.type); //reset position
+			this.holdShape = Shape.getNew(holdType); //reset position
+			updateGhostShape();
 			return;
 		case SOFT_DOWN:
 			newState.translate(0, 1);
 			this.softCount++;
-			//reset gravity timer?
+			resetDropTimer(); //reset gravity timer
 			break;
 		case GRAVITY_DOWN:
 			newState.translate(0, 1);
@@ -199,6 +227,7 @@ public class TetrisGame implements Tetris {
 	
 	private void blockHit() {
 		//place block, spawn the next one
+		pieceHeld = false;
 		
 		//stop the drop timer from working
 		this.dropTimer = Float.MAX_VALUE;

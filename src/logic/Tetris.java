@@ -9,6 +9,7 @@ public interface Tetris {
 	
 	public List<Cell> curShapeCells();
 	public List<Cell> ghostShapeCells();
+	public List<Cell> holdShapeCells();
 	public List<Cell> nextShapeCells(int i);
 	public Cell getCell(int x, int y);
 	
@@ -20,6 +21,7 @@ public interface Tetris {
 	public List<Integer> getLines();
 	public void triggerLineEnd();
 	
+	public void hold();
 	public void hardDown();
 	public void softDown();
 	public void moveSide(boolean left);
