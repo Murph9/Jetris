@@ -1,11 +1,11 @@
-package base;
+package saving;
 
 public class Record implements Comparable<Record> {
 	private int score;
 	private int lineCount;
 	private boolean isNew;
 	
-	Record (int score, int lineCount) {
+	public Record(int score, int lineCount) {
 		this.score = score;
 		this.lineCount = lineCount;
 	}

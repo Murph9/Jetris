@@ -6,6 +6,9 @@ import com.jme3.math.Vector3f;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.event.MouseAppState;
 
+import saving.Record;
+import saving.RecordManager;
+
 
 public class Main extends SimpleApplication {
 
@@ -69,7 +72,7 @@ public class Main extends SimpleApplication {
 		playState = null;
 		
 		//save score
-		RecordManager.saveRecord(r, "A", 0);
+		RecordManager.saveRecord(r, "A");
 		
 		menuState = new MenuState(this);
 		getStateManager().attach(menuState);

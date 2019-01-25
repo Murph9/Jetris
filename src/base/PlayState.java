@@ -24,6 +24,7 @@ import logic.Cell;
 import logic.CellColour;
 import logic.Tetris;
 import logic.TetrisGame;
+import saving.Record;
 
 public class PlayState extends BaseAppState {
 	//manage the playing state of the game, the grid/preview and displaying it

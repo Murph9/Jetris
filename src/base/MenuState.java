@@ -8,16 +8,22 @@ import com.jme3.app.state.BaseAppState;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.simsilica.lemur.Button;
+import com.simsilica.lemur.Checkbox;
 import com.simsilica.lemur.Command;
 import com.simsilica.lemur.Container;
 import com.simsilica.lemur.Label;
+import com.simsilica.lemur.Panel;
+import com.simsilica.lemur.TabbedPanel;
 import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.component.BorderLayout.Position;
 
+import saving.ISettings;
+import saving.Record;
+import saving.RecordManager;
+import saving.SettingsManager;
+
 public class MenuState extends BaseAppState {
 
-	//TODO settings
-	//TODO info page
 	private Node rootNode;
 	private Main main;
 	
@@ -53,21 +59,64 @@ public class MenuState extends BaseAppState {
             }
         });
 		
-		Container myWindow = new Container();
+		TabbedPanel myWindow = new TabbedPanel();
+		myWindow.addTab("Leaderboard", generateLeaderboardTab());
+		myWindow.addTab("Info/Controls", generateInfoTab());
+		myWindow.addTab("Settings", generateSettingsTab());
+		
+		
 		mainWindow.addChild(myWindow, Position.Center);
+	}
+
+	private Panel generateLeaderboardTab() {
+		Container myWindow = new Container();
 		myWindow.addChild(new Label("Leaderboard:"), 0, 0);
 		
 		myWindow.addChild(new Label("Score"), 1, 0);
 		myWindow.addChild(new Label("Lines"), 1, 1);
 	
-		List<Record> records = RecordManager.getRecords("A", 0);
+		List<Record> records = RecordManager.getRecords("A");
 		for (int i = 0; i < Math.min(records.size(), 10); i++) {
 			Record r = records.get(i);
 			myWindow.addChild(new Label(r.getScore() + (r.isNew() ? "*" : "")), 2 + i, 0);
 			myWindow.addChild(new Label(r.getLineCount() + ""), 2 + i, 1);
 		}
+		return myWindow;
 	}
-
+	private Panel generateInfoTab() {
+		Container c = new Container();
+		c.addChild(new Label("<lots of text about info and stuff, which hopefully word wraps."));
+		return c;
+	}
+	private Panel generateSettingsTab() {
+		//maybe use CheckBoxModel
+		ISettings settings = SettingsManager.load();
+		
+		Container c = new Container();
+		
+		c.addChild(new Label("Rand Colours"));
+		Checkbox cb = c.addChild(new Checkbox(SettingsManager.Key.RandomColours.name()), 1);
+		cb.setChecked(settings.randomColours());
+		
+		c.addChild(new Label("Grey Scale"));
+		cb = c.addChild(new Checkbox(SettingsManager.Key.GreyScale.name()), 1);
+		cb.setChecked(settings.greyScale());
+		
+		c.addChild(new Label("Ghost Shape"));
+		cb = c.addChild(new Checkbox(SettingsManager.Key.Ghost.name()), 1);
+		cb.setChecked(settings.ghost());
+		
+		c.addChild(new Label("Hard Drop Lock"));
+		cb = c.addChild(new Checkbox(SettingsManager.Key.HardDropLock.name()), 1);
+		cb.setChecked(settings.hardDropLock());
+		
+		c.addChild(new Label("Expert Mode"));
+		cb = c.addChild(new Checkbox(SettingsManager.Key.ExpertMode.name()), 1);
+		cb.setChecked(settings.expertMode());
+		//TODO save these settings some how
+		return c;
+	}
+	
 	private void triggerSomething() {
 		this.main.startPlay();
 	}
