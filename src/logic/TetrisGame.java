@@ -6,6 +6,8 @@ import java.util.List;
 
 public class TetrisGame implements Tetris {
 	
+	private final float LOCK_DELAY = 0.5f; //feels weird, like it should get less per level
+	
 	//keep hidden due to GRAVITY_DOWN (that should not be public)
 	private enum InputAction {
 		HARD_DOWN, GRAVITY_DOWN, SOFT_DOWN, MOVE_LEFT, MOVE_RIGHT, ROTATE_LEFT, ROTATE_RIGHT, HOLD;
@@ -30,7 +32,8 @@ public class TetrisGame implements Tetris {
 	public int getLevel() { return level; }
 	
 	private int softCount; //as in soft drop counter (technical term for pressing down lots)
-	private float dropTimer; //in milliseconds
+	private float dropTimer; //in sec
+	private float lockTimer; //in sec
 	private boolean pieceHeld; //to set if hold was pressed, to prevent pressing it again
 	
 	private final LinkedList<Integer> flashRows;
@@ -85,6 +88,14 @@ public class TetrisGame implements Tetris {
 		if (dropTimer <= 0) {
 			timerDown();
 			resetDropTimer();
+		}
+		
+		if (this.lockTimer > 0) {
+			this.lockTimer -= tpf;
+		} else if (this.lockTimer < 0) {
+			//lock timer done, so lock it in
+			blockHit();
+			this.lockTimer = 0;
 		}
 	}
 	private void resetDropTimer() {
@@ -200,9 +211,9 @@ public class TetrisGame implements Tetris {
 		}
 		
 		if (!isValidMove(newState)) {
-			if (action == InputAction.SOFT_DOWN || action == InputAction.GRAVITY_DOWN) {
-				//TODO implement something here for lock delay here
-				blockHit(); //a down move failed, lock in place
+			if (this.lockTimer == 0 && (action == InputAction.SOFT_DOWN || action == InputAction.GRAVITY_DOWN || action == InputAction.HARD_DOWN)) {
+				//a down move failed, trigger lock delay
+				this.lockTimer = LOCK_DELAY;
 			}
 			return;
 		}
@@ -210,6 +221,7 @@ public class TetrisGame implements Tetris {
 		//valid move, so update curShape
 		this.curShape = newState;
 		updateGhostShape();
+		this.lockTimer = 0; //any valid move resets the lock timer
 	}
 	
 	private boolean isValidMove(Shape nextState) {
