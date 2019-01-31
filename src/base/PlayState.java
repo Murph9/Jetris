@@ -157,8 +157,8 @@ public class PlayState extends BaseAppState {
 			}
 			nextCellMaps.add(nextShape);
 		}
-		//then the hold shape
-		Vector3f center = new Vector3f(screenWidth - cellSpacing*5, screenHeight/2 + 2.5f*cellSpacing - cellSpacing, 0); //top/right side hopefully (going up)
+		//then the hold shape bottom left
+		Vector3f center = new Vector3f(0, 2.5f*cellSpacing, 0); //top/right side hopefully (going up)
 		this.holdCellMap = new HashMap<>();
 		for (int k = 3; k < 7; k++) { //x[3-6]
 			for (int j = 0; j < 2; j++) { //y[0-1]
