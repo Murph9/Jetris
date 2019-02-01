@@ -1,6 +1,8 @@
 package base;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
@@ -21,9 +23,11 @@ import saving.ISettings;
 import saving.Record;
 import saving.RecordManager;
 import saving.SettingsManager;
+import saving.SettingsManager.Key;
 
 public class MenuState extends BaseAppState {
 
+	private HashMap<SettingsManager.Key, Checkbox> checkboxes;
 	private Node rootNode;
 	private Main main;
 	
@@ -88,37 +92,58 @@ public class MenuState extends BaseAppState {
 		c.addChild(new Label("<lots of text about info and stuff, which hopefully word wraps."));
 		return c;
 	}
+	@SuppressWarnings("unchecked")
 	private Panel generateSettingsTab() {
 		//maybe use CheckBoxModel
 		ISettings settings = SettingsManager.load();
-		
 		Container c = new Container();
+		
+		checkboxes = new HashMap<>();
 		
 		c.addChild(new Label("Rand Colours"));
 		Checkbox cb = c.addChild(new Checkbox(SettingsManager.Key.RandomColours.name()), 1);
 		cb.setChecked(settings.randomColours());
+		cb.addClickCommands((chk -> saveSettings()));
+		checkboxes.put(SettingsManager.Key.RandomColours, cb);
 		
 		c.addChild(new Label("Grey Scale"));
 		cb = c.addChild(new Checkbox(SettingsManager.Key.GreyScale.name()), 1);
 		cb.setChecked(settings.greyScale());
+		cb.addClickCommands((chk -> saveSettings()));
+		checkboxes.put(SettingsManager.Key.GreyScale, cb);
 		
 		c.addChild(new Label("Ghost Shape"));
 		cb = c.addChild(new Checkbox(SettingsManager.Key.Ghost.name()), 1);
 		cb.setChecked(settings.ghost());
+		cb.addClickCommands((chk -> saveSettings()));
+		checkboxes.put(SettingsManager.Key.Ghost, cb);
 		
 		c.addChild(new Label("Hard Drop Lock"));
 		cb = c.addChild(new Checkbox(SettingsManager.Key.HardDropLock.name()), 1);
 		cb.setChecked(settings.hardDropLock());
+		cb.addClickCommands((chk -> saveSettings()));
+		checkboxes.put(SettingsManager.Key.HardDropLock, cb);
 		
 		c.addChild(new Label("Expert Mode"));
 		cb = c.addChild(new Checkbox(SettingsManager.Key.ExpertMode.name()), 1);
 		cb.setChecked(settings.expertMode());
-		//TODO save these settings some how
+		cb.addClickCommands((chk -> saveSettings()));
+		checkboxes.put(SettingsManager.Key.ExpertMode, cb);
+
 		return c;
 	}
 	
 	private void triggerSomething() {
 		this.main.startPlay();
+	}
+	
+	private void saveSettings() {
+		HashMap<SettingsManager.Key, Object> settings = new HashMap<>();
+		for (Entry<Key, Checkbox> box: checkboxes.entrySet()) {
+			settings.put(box.getKey(), box.getValue().isChecked());
+		}
+		
+		SettingsManager.save(settings);
 	}
 	
 	@Override

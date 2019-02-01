@@ -12,6 +12,9 @@ public class TetrisGame implements Tetris {
 	private enum InputAction {
 		HARD_DOWN, GRAVITY_DOWN, SOFT_DOWN, MOVE_LEFT, MOVE_RIGHT, ROTATE_LEFT, ROTATE_RIGHT, HOLD;
 	}
+	
+	private final LogicSettings settings;
+	
 	private final Generator shapeGenerator;
 	private final Shape[] nextShapes;
 	private Shape curShape;
@@ -47,7 +50,8 @@ public class TetrisGame implements Tetris {
 	private boolean ended;
 	public boolean isGameOver() { return ended; }
 	
-	public TetrisGame(int width, int height, int nextShapes) {
+	public TetrisGame(int width, int height, int nextShapes, LogicSettings settings) {
+		this.settings = settings; //TODO null check
 		this.width = width;
 		this.height = height;
 		this.flashRows = new LinkedList<Integer>();
@@ -158,9 +162,10 @@ public class TetrisGame implements Tetris {
 			newState.translate(0, this.softCount);
 			this.softCount *= 2; //hard drop gets double points
 			this.curShape = newState;
-			//TODO settings call here for harddrop
-			blockHit();
-			return;
+			if (settings.hardDropLock) { //TODO basically forfeits and softlock points 
+				blockHit();
+				return;
+			}
 		case HOLD:
 			this.softCount = 0;
 			if (pieceHeld)

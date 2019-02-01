@@ -22,13 +22,19 @@ import com.jme3.scene.Node;
 
 import logic.Cell;
 import logic.CellColour;
+import logic.LogicSettings;
 import logic.Tetris;
 import logic.TetrisGame;
+import saving.ISettings;
 import saving.Record;
+import saving.SettingsManager;
 
 public class PlayState extends BaseAppState {
 	//manage the playing state of the game, the grid/preview and displaying it
 	//yes its a lot but its not a large game [yet]
+	
+	//TODO expert mode
+	//TODO save settings, open game, settings not used, reload, open game, settings used
 	
 	public static final int X_SIZE = 10;
 	public static final int Y_SIZE = 21;
@@ -80,7 +86,11 @@ public class PlayState extends BaseAppState {
 		defaultMeshMat.getAdditionalRenderState().setWireframe(true);
 		defaultMeshMat.getAdditionalRenderState().setLineWidth(4);
 		
-		this.game = new TetrisGame(X_SIZE, Y_SIZE, NEXT_SHAPE_COUNT);
+		ISettings settings = SettingsManager.load();
+		
+		LogicSettings gameSettings = new LogicSettings();
+		gameSettings.hardDropLock = settings.hardDropLock();
+		this.game = new TetrisGame(X_SIZE, Y_SIZE, NEXT_SHAPE_COUNT, gameSettings);
 		
 		this.rootNode = new Node("game node");
 		this.rootNode.setQueueBucket(Bucket.Gui);
@@ -277,27 +287,29 @@ public class PlayState extends BaseAppState {
 		}
 		
 		
-		//update the special ghost block geometries
-		int geoIndex = 0;
-		for (Cell c: game.ghostShapeCells()) {
-			Geometry g = this.ghostGeos.get(geoIndex);
-			Material mat = defaultMeshMat.clone();
-			CellColour col = c.getColour();
-			if (col != null)
-				mat.setColor("Color", new ColorRGBA(col.r, col.g, col.b, col.a));
-			
-			g.setMaterial(mat);
-			
-			Cell c2 = game.getCell(c.getX(), c.getY());
-			if (c2 != null) {
-				Vector3f pos = new Vector3f(cellMap.get(c2).getLocalTranslation());
-				pos.z += 1; //always on top
-				g.setLocalTranslation(pos);				
-			} else { //outside the play area move out of view
-				g.setLocalTranslation(-10, -10, 0);
+		if (SettingsManager.load().ghost()) {
+			//update the special ghost block geometries
+			int geoIndex = 0;
+			for (Cell c: game.ghostShapeCells()) {
+				Geometry g = this.ghostGeos.get(geoIndex);
+				Material mat = defaultMeshMat.clone();
+				CellColour col = c.getColour();
+				if (col != null)
+					mat.setColor("Color", new ColorRGBA(col.r, col.g, col.b, col.a));
+				
+				g.setMaterial(mat);
+				
+				Cell c2 = game.getCell(c.getX(), c.getY());
+				if (c2 != null) {
+					Vector3f pos = new Vector3f(cellMap.get(c2).getLocalTranslation());
+					pos.z += 1; //always on top
+					g.setLocalTranslation(pos);				
+				} else { //outside the play area move out of view
+					g.setLocalTranslation(-10, -10, 0);
+				}
+				
+				geoIndex++;
 			}
-			
-			geoIndex++;
 		}
 				
 		

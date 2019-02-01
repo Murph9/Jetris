@@ -4,7 +4,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
+import base.H;
 import logic.ShapeRotator.KickType;
+import saving.SettingsManager;
 
 public class Shape {
 	
@@ -112,7 +114,7 @@ public class Shape {
 	
 	////////////////////////////
 	protected final LinkedList<Cell> shapeCells; //cells in this shape
-	protected final CellColour colour; //colour of this shape
+	protected CellColour colour; //colour of this shape
 	protected final Type type;
 	protected KickType kickType;
 
@@ -130,7 +132,9 @@ public class Shape {
 	}
 	private Shape(Type t, KickType kickType) {
 		this(t, kickType, TYPE_COLOUR.get(t));
-//		TODO setting for random colors H.randomColourHSV()
+		
+		if (SettingsManager.load().randomColours()) //cross library call
+			this.colour = H.randomColourHSV();
 	}
 	
 	public Shape clone() {

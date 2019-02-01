@@ -12,13 +12,20 @@ public class Settings implements ISettings {
             this.settings = sets;
         } else {
             this.settings = new HashMap<Key, Object>();
-            //defaults
-            this.settings.put(Key.ExpertMode, false);
-            this.settings.put(Key.Ghost, true);
-            this.settings.put(Key.GreyScale, false);
-            this.settings.put(Key.HardDropLock, true);
-            this.settings.put(Key.RandomColours, false);
         }
+            
+        //set defaults that don't exist
+        if (!this.settings.containsKey(Key.ExpertMode))
+        	this.settings.put(Key.ExpertMode, false);
+        if (!this.settings.containsKey(Key.Ghost))
+        	this.settings.put(Key.Ghost, true);
+        if (!this.settings.containsKey(Key.GreyScale))
+        	this.settings.put(Key.GreyScale, false);
+        if (!this.settings.containsKey(Key.HardDropLock))
+        	this.settings.put(Key.HardDropLock, true);
+        if (!this.settings.containsKey(Key.RandomColours))
+        	this.settings.put(Key.RandomColours, false);
+    
     }
 
     private boolean getBool(SettingsManager.Key key) {
