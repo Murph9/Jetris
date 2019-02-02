@@ -251,7 +251,10 @@ public class TetrisGame implements Tetris {
 
 		for (Cell c: this.curShape.getCells()) { 
 			//add the cells to the grid
-			fillCell(c.getX(), c.getY(), c.getColour());
+			CellColour c2 = c.getColour();
+			if (settings.invisibleLockedCells)
+				c2 = null;
+			fillCell(c.getX(), c.getY(), c2);
 		}
 
 		this.score += this.softCount; //pressed down quite a few times

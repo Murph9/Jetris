@@ -6,6 +6,7 @@ import java.util.Map;
 
 import base.H;
 import logic.ShapeRotator.KickType;
+import saving.ISettings;
 import saving.SettingsManager;
 
 public class Shape {
@@ -133,8 +134,16 @@ public class Shape {
 	private Shape(Type t, KickType kickType) {
 		this(t, kickType, TYPE_COLOUR.get(t));
 		
-		if (SettingsManager.load().randomColours()) //cross library call
+		//should be cached to be called like this
+		ISettings sets = SettingsManager.load(); //PLS: cross library calls 
+		if (sets.randomColours()) //cross library call
 			this.colour = H.randomColourHSV();
+		
+		if (sets.greyScale()) {
+			float grey = 0.299f * this.colour.r + 0.587f * this.colour.g + 0.114f * this.colour.b;
+			this.colour = new CellColour(grey, grey, grey, 1); //formula from wiki
+			//PLS: change to using a shader
+		}
 	}
 	
 	public Shape clone() {

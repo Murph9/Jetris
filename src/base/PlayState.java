@@ -33,8 +33,6 @@ public class PlayState extends BaseAppState {
 	//manage the playing state of the game, the grid/preview and displaying it
 	//yes its a lot but its not a large game [yet]
 	
-	//TODO expert mode
-	
 	public static final int X_SIZE = 10;
 	public static final int Y_SIZE = 21;
 	public static final int Y_HIDDEN = 1; //stupid tetris spec requires a half-hidden row at the top
@@ -89,6 +87,7 @@ public class PlayState extends BaseAppState {
 		
 		LogicSettings gameSettings = new LogicSettings();
 		gameSettings.hardDropLock = settings.hardDropLock();
+		gameSettings.invisibleLockedCells = settings.expertMode();
 		this.game = new TetrisGame(X_SIZE, Y_SIZE, NEXT_SHAPE_COUNT, gameSettings);
 		
 		this.rootNode = new Node("game node");
