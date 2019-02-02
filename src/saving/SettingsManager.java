@@ -46,8 +46,11 @@ public class SettingsManager {
 		return new File(fileName);
 	}
 	
-    public static ISettings load() {
-    	if (CURRENT != null)
+	public static ISettings load() {
+		return load(false);
+	}
+    public static ISettings load(boolean force) {
+    	if (!force && CURRENT != null)
     		return CURRENT; //because we load on save this should 'always' be correct (enough)
     	
     	List<Setting> settings = new LinkedList<Setting>(); //start to read records
@@ -111,7 +114,7 @@ public class SettingsManager {
 				out.close();
 		}
 		
-		load(); //then re-cache it
+		load(true); //then re-cache it
     }
     
     static class Setting {

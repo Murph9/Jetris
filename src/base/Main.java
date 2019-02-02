@@ -35,9 +35,6 @@ public class Main extends SimpleApplication {
 		inputManager.deleteMapping(SimpleApplication.INPUT_MAPPING_MEMORY);
 		inputManager.deleteMapping(SimpleApplication.INPUT_MAPPING_EXIT);
 		
-		//engine disables
-		flyCam.setEnabled(false);
-		
 		//initialize Lemur (GUI thing)
 		GuiGlobals.initialize(this);
 		//Load my style
@@ -46,6 +43,7 @@ public class Main extends SimpleApplication {
 		getStateManager().attach(new MouseAppState(this));
 
 		//some camera state stuff
+		flyCam.setEnabled(false);
 		getCamera().setLocation(new Vector3f());
 		getCamera().lookAt(new Vector3f(1,0,0), Vector3f.UNIT_Y);
 		getViewPort().setBackgroundColor(ColorRGBA.Black);

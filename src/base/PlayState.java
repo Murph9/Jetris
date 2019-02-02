@@ -34,7 +34,6 @@ public class PlayState extends BaseAppState {
 	//yes its a lot but its not a large game [yet]
 	
 	//TODO expert mode
-	//TODO save settings, open game, settings not used, reload, open game, settings used
 	
 	public static final int X_SIZE = 10;
 	public static final int Y_SIZE = 21;
