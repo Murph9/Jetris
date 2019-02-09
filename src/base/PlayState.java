@@ -52,7 +52,7 @@ public class PlayState extends BaseAppState {
 	private Material defaultMeshMat;
 	
 	private Node rootNode;
-	private Tetris game;
+	private Tetris engine;
 	
 	private BitmapText scoreText;
 	private BitmapText linesText;
@@ -92,7 +92,7 @@ public class PlayState extends BaseAppState {
 		LogicSettings gameSettings = new LogicSettings();
 		gameSettings.hardDropLock = settings.hardDropLock();
 		gameSettings.invisibleLockedCells = settings.expertMode();
-		this.game = new TetrisGame(X_SIZE, Y_SIZE, NEXT_SHAPE_COUNT, gameSettings);
+		this.engine = new TetrisGame(X_SIZE, Y_SIZE, NEXT_SHAPE_COUNT, gameSettings);
 		
 		this.rootNode = new Node("game node");
 		this.rootNode.setQueueBucket(Bucket.Gui);
@@ -166,7 +166,7 @@ public class PlayState extends BaseAppState {
 			
 			for (int k = 3; k < 7; k++) { //x[3-6]
 				for (int j = 0; j < 2; j++) { //y[0-1]
-					Cell c = game.getCell(k, j);
+					Cell c = engine.getCell(k, j);
 					Geometry g = initQuad(app.getAssetManager(), DEFAULT_CELL_COLOR, b);
 					nextShape.put(c, g);
 					g.setLocalTranslation(nextCenter.add(shapeCellPosToOffset(c.getX(), c.getY(), cellSpacing)));
@@ -180,7 +180,7 @@ public class PlayState extends BaseAppState {
 		this.holdCellMap = new HashMap<>();
 		for (int k = 3; k < 7; k++) { //x[3-6]
 			for (int j = 0; j < 2; j++) { //y[0-1]
-				Cell c = game.getCell(k, j);
+				Cell c = engine.getCell(k, j);
 				Geometry g = initQuad(app.getAssetManager(), DEFAULT_CELL_COLOR, b);
 				holdCellMap.put(c, g);
 				g.setLocalTranslation(center.add(shapeCellPosToOffset(c.getX(), c.getY(), cellSpacing)));
@@ -191,7 +191,7 @@ public class PlayState extends BaseAppState {
 		this.keys = new Keys(this);
 		app.getInputManager().addRawInputListener(keys);
 		
-		this.game.initialise();
+		this.engine.initialise();
 	}
 	
 	private Geometry initQuad(AssetManager am, ColorRGBA c, Mesh b) {
@@ -218,26 +218,26 @@ public class PlayState extends BaseAppState {
 				return;
 			
 			case "Hold":
-				game.hold();
+				engine.hold();
 				break;
 
 			case "HardDrop":
-				game.hardDown();
+				engine.hardDown();
 				break;
 			case "Drop": //for the this.softCount score (down key usually)
-				game.softDown();
+				engine.softDown();
 				break;
 			case "Left":
-				game.moveSide(true);
+				engine.moveSide(true);
 				break;
 			case "Right":
-				game.moveSide(false);
+				engine.moveSide(false);
 				break;
 			case "RotateLeft":
-				game.rotate(false);
+				engine.rotate(false);
 				break;
 			case "RotateRight":
-				game.rotate(true);
+				engine.rotate(true);
 				break;
 		}
 	}
@@ -246,23 +246,23 @@ public class PlayState extends BaseAppState {
 	public void update(float tpf) {
 		super.update(tpf);
 		
-		if (game.isGameOver()) {
+		if (engine.isGameOver()) {
 			gameOverTimer -= tpf;
 			if (gameOverTimer < 0)
-				main.gameLost(new Record(game.getScore(), game.getLinesCount()));
+				main.gameLost(new Record(engine.getScore(), engine.getLinesCount()));
 			
 			return;
 		}
 		
 		//update game engine, will never be called while paused
-		game.update(tpf);
+		engine.update(tpf);
 				
 
 		renderView();
 		
 		
 		//listen to the newline method to start the new line code
-		if (game.newLine()) {
+		if (engine.newLine()) {
 			if (flashTimer == 0) {
 				//trigger graphics for getting a line
 				flashTimer = LINE_DELAY;
@@ -270,9 +270,9 @@ public class PlayState extends BaseAppState {
 			} else {
 				flashTimer -= tpf;
 				
-				for (Integer j : game.getLines()) {
+				for (Integer j : engine.getLines()) {
 					for (int i = 0; i < X_SIZE; i++) {
-						Cell c = game.getCell(i, j);
+						Cell c = engine.getCell(i, j);
 						Geometry g = this.cellMap.get(c);
 						Material mat = new Material(Main.CURRENT.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
 						mat.setColor("Color", ColorRGBA.White);
@@ -281,7 +281,7 @@ public class PlayState extends BaseAppState {
 				}
 				
 				if (flashTimer < 0) {
-					game.triggerLineEnd();
+					engine.triggerLineEnd();
 					flashTimer = 0;
 				}
 			}
@@ -296,9 +296,9 @@ public class PlayState extends BaseAppState {
 	private void renderView() {
 		//update the state of all of the visuals
 		
-		this.scoreText.setText("Score: " + game.getScore());
-		this.linesText.setText("Lines: " + game.getLinesCount());
-		this.levelText.setText("Level: " + game.getLevel());
+		this.scoreText.setText("Score: " + engine.getScore());
+		this.linesText.setText("Lines: " + engine.getLinesCount());
+		this.levelText.setText("Level: " + engine.getLevel());
 		
 		//update each cell's colour (the expensive way?)
 		doForEachCell((c) -> {
@@ -307,7 +307,7 @@ public class PlayState extends BaseAppState {
 		});
 
 		//show current piece
-		for (Cell c: game.curShapeCells()) {
+		for (Cell c: engine.curShapeCells()) {
 			Geometry g = this.cellMap.get(c);
 			setColorFromCell(g, c);
 		}
@@ -316,7 +316,7 @@ public class PlayState extends BaseAppState {
 			for (Geometry g: this.nextCellMaps.get(i).values()) {
 				g.setMaterial(defaultMat);
 			}
-			for (Cell c: game.nextShapeCells(i)) {
+			for (Cell c: engine.nextShapeCells(i)) {
 				Geometry g = this.nextCellMaps.get(i).get(c);
 				setColorFromCell(g, c);
 			}
@@ -325,7 +325,7 @@ public class PlayState extends BaseAppState {
 		for (Geometry g: this.holdCellMap.values()) {
 			g.setMaterial(defaultMat);
 		}
-		for (Cell c: game.holdShapeCells()) {
+		for (Cell c: engine.holdShapeCells()) {
 			Geometry g = this.holdCellMap.get(c);
 			setColorFromCell(g, c);
 		}
@@ -335,7 +335,7 @@ public class PlayState extends BaseAppState {
 		if (SettingsManager.load().ghost()) {
 			//update the special ghost block geometries
 			int geoIndex = 0;
-			for (Cell c: game.ghostShapeCells()) {
+			for (Cell c: engine.ghostShapeCells()) {
 				Geometry g = this.ghostGeos.get(geoIndex);
 				Material mat = defaultMeshMat.clone();
 				CellColour col = c.getColour();
@@ -345,7 +345,7 @@ public class PlayState extends BaseAppState {
 					mat.setColor("Color", ColorRGBA.BlackNoAlpha);
 				g.setMaterial(mat);
 				
-				Cell c2 = game.getCell(c.getX(), c.getY());
+				Cell c2 = engine.getCell(c.getX(), c.getY());
 				if (c2 != null) {
 					Vector3f pos = new Vector3f(cellMap.get(c2).getLocalTranslation());
 					pos.z += 1; //always on top
@@ -379,7 +379,7 @@ public class PlayState extends BaseAppState {
 		
 		for (int i = 0; i < X_SIZE; i++) {
 			for (int j = 0; j < Y_SIZE; j++) {
-				func.accept(game.getCell(i, j));
+				func.accept(engine.getCell(i, j));
 			}
 		}
 	}
