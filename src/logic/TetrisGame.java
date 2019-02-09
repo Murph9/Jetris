@@ -7,6 +7,8 @@ import java.util.List;
 public class TetrisGame implements Tetris {
 	
 	private final float LOCK_DELAY = 0.5f; //feels weird, like it should get less per level
+	//note this for later: https://tetris.fandom.com/wiki/Infinity
+	//whats funny is it mentions 'O' being able to rotate forever as well 
 	
 	//keep hidden due to GRAVITY_DOWN (that should not be public)
 	private enum InputAction {
@@ -38,6 +40,7 @@ public class TetrisGame implements Tetris {
 	private float dropTimer; //in sec
 	private float lockTimer; //in sec
 	private boolean pieceHeld; //to set if hold was pressed, to prevent pressing it again
+	private int lineCombo; //for scoring, 1 per combo
 	
 	private final LinkedList<Integer> flashRows;
 	/**
@@ -266,6 +269,8 @@ public class TetrisGame implements Tetris {
 			return;
 		}
 		
+		this.lineCombo = 0;
+		
 		spawnNextBlock();
 	}
 	
@@ -339,8 +344,12 @@ public class TetrisGame implements Tetris {
 	
 	private void updateByLines(int lines) {
 		this.lines += lines;
-		
+
 		//http://tetris.wikia.com/wiki/Scoring#Guideline_scoring_system
+		
+		this.lineCombo++;
+		this.score += 50*lineCombo*level;
+
 		switch (lines) {
 		case 1: //single
 			this.score += 100*this.level;
