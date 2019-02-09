@@ -33,6 +33,8 @@ public class PlayState extends BaseAppState {
 	//manage the playing state of the game, the grid/preview and displaying it
 	//yes its a lot but its not a large game [yet]
 	
+	//TODO pausing with the 3 second rule thingo to unpause (prevents pause spamming)
+	
 	public static final int X_SIZE = 10;
 	public static final int Y_SIZE = 21;
 	public static final int Y_HIDDEN = 1; //stupid tetris spec requires a half-hidden row at the top
@@ -52,9 +54,10 @@ public class PlayState extends BaseAppState {
 	private Node rootNode;
 	private Tetris game;
 	
-	private BitmapText score;
-	private BitmapText lines;
-	private BitmapText level;
+	private BitmapText scoreText;
+	private BitmapText linesText;
+	private BitmapText levelText;
+	private BitmapText pausedText;
 	
 	private HashMap<Cell, Geometry> cellMap;
 	private List<Geometry> ghostGeos;
@@ -66,6 +69,7 @@ public class PlayState extends BaseAppState {
 	
 	private float flashTimer;
 	private float gameOverTimer;
+	private boolean paused;
 	
 	public PlayState(Main m) {
 		this.main = m;
@@ -100,26 +104,32 @@ public class PlayState extends BaseAppState {
 
 		BitmapFont font = app.getAssetManager().loadFont("Interface/Fonts/Default.fnt");
 		int fontSize = font.getCharSet().getRenderedSize();
-		this.score = new BitmapText(font, false);
-		this.score.setLocalTranslation(screenWidth - 150, screenHeight - fontSize, 0);
-		this.score.setText("Score: 0");
-		this.score.setColor(ColorRGBA.White);
-		this.score.setSize(fontSize);
-		this.rootNode.attachChild(this.score);
+		this.scoreText = new BitmapText(font, false);
+		this.scoreText.setLocalTranslation(screenWidth - 150, screenHeight - fontSize, 0);
+		this.scoreText.setText("Score: 0");
+		this.scoreText.setColor(ColorRGBA.White);
+		this.scoreText.setSize(fontSize);
+		this.rootNode.attachChild(this.scoreText);
 		
-		this.lines = new BitmapText(font, false);
-		this.lines.setLocalTranslation(screenWidth - 150, screenHeight - fontSize*2, 0);
-		this.lines.setText("Lines: 0");
-		this.lines.setColor(ColorRGBA.White);
-		this.lines.setSize(fontSize);
-		this.rootNode.attachChild(this.lines);
+		this.linesText = new BitmapText(font, false);
+		this.linesText.setLocalTranslation(screenWidth - 150, screenHeight - fontSize*2, 0);
+		this.linesText.setText("Lines: 0");
+		this.linesText.setColor(ColorRGBA.White);
+		this.linesText.setSize(fontSize);
+		this.rootNode.attachChild(this.linesText);
 		
-		this.level = new BitmapText(font, false);
-		this.level.setLocalTranslation(screenWidth - 150, screenHeight - fontSize*3, 0);
-		this.level.setText("Speed: 0");
-		this.level.setColor(ColorRGBA.White);
-		this.level.setSize(fontSize);
-		this.rootNode.attachChild(this.level);
+		this.levelText = new BitmapText(font, false);
+		this.levelText.setLocalTranslation(screenWidth - 150, screenHeight - fontSize*3, 0);
+		this.levelText.setText("Speed: 0");
+		this.levelText.setColor(ColorRGBA.White);
+		this.levelText.setSize(fontSize);
+		this.rootNode.attachChild(this.levelText);
+		
+		this.pausedText = new BitmapText(font, false);
+		this.pausedText.setLocalTranslation(screenWidth/2, screenHeight/2, 0);
+		this.pausedText.setText("Paused");
+		this.pausedText.setColor(ColorRGBA.White);
+		this.pausedText.setSize(fontSize);
 		
 		//calc play field width:
 		float cellSize = CellHelper.cellSize(screenHeight, Y_SIZE-Y_HIDDEN);
@@ -176,8 +186,7 @@ public class PlayState extends BaseAppState {
 				g.setLocalTranslation(center.add(shapeCellPosToOffset(c.getX(), c.getY(), cellSpacing)));
 				rootNode.attachChild(g);
 			}
-		}
-		
+		}		
 		
 		this.keys = new Keys(this);
 		app.getInputManager().addRawInputListener(keys);
@@ -245,71 +254,12 @@ public class PlayState extends BaseAppState {
 			return;
 		}
 		
-		if (!this.isEnabled())
-			return; //do not update while paused
-		
+		//update game engine, will never be called while paused
 		game.update(tpf);
-		
-		this.score.setText("Score: " + game.getScore());
-		this.lines.setText("Lines: " + game.getLinesCount());
-		this.level.setText("Level: " + game.getLevel());
-		
-		//update each cell's colour (the expensive way?)
-		doForEachCell((c) -> {
-			Geometry g = this.cellMap.get(c);
-			setColorFromCell(g, c);
-		});
-		
-		//show current piece
-		for (Cell c: game.curShapeCells()) {
-			Geometry g = this.cellMap.get(c);
-			setColorFromCell(g, c);
-		}
-		//show next pieces
-		for (int i = 0 ; i < NEXT_SHAPE_COUNT; i++) {
-			for (Geometry g: this.nextCellMaps.get(i).values()) {
-				g.setMaterial(defaultMat);
-			}
-			for (Cell c: game.nextShapeCells(i)) {
-				Geometry g = this.nextCellMaps.get(i).get(c);
-				setColorFromCell(g, c);
-			}
-		}
-		//show hold piece
-		for (Geometry g: this.holdCellMap.values()) {
-			g.setMaterial(defaultMat);
-		}
-		for (Cell c: game.holdShapeCells()) {
-			Geometry g = this.holdCellMap.get(c);
-			setColorFromCell(g, c);
-		}
-		
-		
-		if (SettingsManager.load().ghost()) {
-			//update the special ghost block geometries
-			int geoIndex = 0;
-			for (Cell c: game.ghostShapeCells()) {
-				Geometry g = this.ghostGeos.get(geoIndex);
-				Material mat = defaultMeshMat.clone();
-				CellColour col = c.getColour();
-				if (col != null)
-					mat.setColor("Color", new ColorRGBA(col.r, col.g, col.b, col.a));
 				
-				g.setMaterial(mat);
-				
-				Cell c2 = game.getCell(c.getX(), c.getY());
-				if (c2 != null) {
-					Vector3f pos = new Vector3f(cellMap.get(c2).getLocalTranslation());
-					pos.z += 1; //always on top
-					g.setLocalTranslation(pos);				
-				} else { //outside the play area move out of view
-					g.setLocalTranslation(-10, -10, 0);
-				}
-				
-				geoIndex++;
-			}
-		}
-				
+
+		renderView();
+		
 		
 		//listen to the newline method to start the new line code
 		if (game.newLine()) {
@@ -343,6 +293,72 @@ public class PlayState extends BaseAppState {
 		}
 	}
 	
+	private void renderView() {
+		//update the state of all of the visuals
+		
+		this.scoreText.setText("Score: " + game.getScore());
+		this.linesText.setText("Lines: " + game.getLinesCount());
+		this.levelText.setText("Level: " + game.getLevel());
+		
+		//update each cell's colour (the expensive way?)
+		doForEachCell((c) -> {
+			Geometry g = this.cellMap.get(c);
+			setColorFromCell(g, c);
+		});
+
+		//show current piece
+		for (Cell c: game.curShapeCells()) {
+			Geometry g = this.cellMap.get(c);
+			setColorFromCell(g, c);
+		}
+		//show next pieces
+		for (int i = 0 ; i < NEXT_SHAPE_COUNT; i++) {
+			for (Geometry g: this.nextCellMaps.get(i).values()) {
+				g.setMaterial(defaultMat);
+			}
+			for (Cell c: game.nextShapeCells(i)) {
+				Geometry g = this.nextCellMaps.get(i).get(c);
+				setColorFromCell(g, c);
+			}
+		}
+		//show hold piece
+		for (Geometry g: this.holdCellMap.values()) {
+			g.setMaterial(defaultMat);
+		}
+		for (Cell c: game.holdShapeCells()) {
+			Geometry g = this.holdCellMap.get(c);
+			setColorFromCell(g, c);
+		}
+		
+		
+		//yes it looks like this updates in the render method, but i can assure you its only visual 
+		if (SettingsManager.load().ghost()) {
+			//update the special ghost block geometries
+			int geoIndex = 0;
+			for (Cell c: game.ghostShapeCells()) {
+				Geometry g = this.ghostGeos.get(geoIndex);
+				Material mat = defaultMeshMat.clone();
+				CellColour col = c.getColour();
+				if (col != null)
+					mat.setColor("Color", new ColorRGBA(col.r, col.g, col.b, col.a));
+				if (this.paused) //paused, so remove
+					mat.setColor("Color", ColorRGBA.BlackNoAlpha);
+				g.setMaterial(mat);
+				
+				Cell c2 = game.getCell(c.getX(), c.getY());
+				if (c2 != null) {
+					Vector3f pos = new Vector3f(cellMap.get(c2).getLocalTranslation());
+					pos.z += 1; //always on top
+					g.setLocalTranslation(pos);				
+				} else { //outside the play area move out of view
+					g.setLocalTranslation(-10, -10, 0);
+				}
+				
+				geoIndex++;
+			}
+		}
+	}
+	
 	private void setColorFromCell(Geometry g, Cell c) {
 		if (g == null || c == null)
 			return; //ignore
@@ -351,6 +367,8 @@ public class PlayState extends BaseAppState {
 		CellColour col = c.getColour();
 		if (col != null)
 			mat.setColor("Color", new ColorRGBA(col.r, col.g, col.b, col.a));
+		if (this.paused) //paused, so remove
+			mat.setColor("Color", ColorRGBA.BlackNoAlpha);
 		
 		g.setMaterial(mat);
 	}
@@ -405,7 +423,16 @@ public class PlayState extends BaseAppState {
 		((SimpleApplication)app).getRootNode().detachChild(rootNode);
 	}
 	@Override
-	protected void onEnable() {}
+	protected void onEnable() {
+		paused = false;
+		this.rootNode.detachChild(this.pausedText);
+	}
 	@Override
-	protected void onDisable() { }
+	protected void onDisable() { 
+		paused = true;
+		this.rootNode.attachChild(this.pausedText);
+		
+		//update once to show the paused state
+		renderView();
+	}
 }
