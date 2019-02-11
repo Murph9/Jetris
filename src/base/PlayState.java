@@ -33,8 +33,6 @@ public class PlayState extends BaseAppState {
 	//manage the playing state of the game, the grid/preview and displaying it
 	//yes its a lot but its not a large game [yet]
 	
-	//TODO pausing with the 3 second rule thingo to unpause (prevents pause spamming)
-	
 	public static final int X_SIZE = 10;
 	public static final int Y_SIZE = 21;
 	public static final int Y_HIDDEN = 1; //stupid tetris spec requires a half-hidden row at the top
@@ -69,7 +67,9 @@ public class PlayState extends BaseAppState {
 	
 	private float flashTimer;
 	private float gameOverTimer;
+	
 	private boolean paused;
+	private float pauseTimer;
 	
 	public PlayState(Main m) {
 		this.main = m;
@@ -254,7 +254,24 @@ public class PlayState extends BaseAppState {
 			return;
 		}
 		
-		//update game engine, will never be called while paused
+		//unpausing causes a pauseTimer to be triggered
+		if (!paused && pauseTimer > 0) {
+			pauseTimer -= tpf;
+			if (pauseTimer < 0) {
+				this.pausedText.setText("Paused");
+				this.rootNode.detachChild(this.pausedText);
+				pauseTimer = 0;
+			} else if (pauseTimer < 1) {
+				this.pausedText.setText("1");
+			} else if (pauseTimer < 2) {
+				this.pausedText.setText("2");
+			} else if (pauseTimer < 3) {
+				this.pausedText.setText("3");
+			}
+			return;
+		}
+		
+		//update game engine, will never be called while this isn't enabled
 		engine.update(tpf);
 				
 
@@ -397,7 +414,7 @@ public class PlayState extends BaseAppState {
 
 		return new Vector3f(
 			offX * cellSpacing + screenWidth / 2f,
-			offY * cellSpacing + screenHeight / 2f, //TODO offset so you can see the top row a little
+			offY * cellSpacing + screenHeight / 2f - cellSpacing/15f, //an offset so you can see the top row a little (required by guidelines)
 			0
 		);
 	}
@@ -424,8 +441,9 @@ public class PlayState extends BaseAppState {
 	}
 	@Override
 	protected void onEnable() {
+		if (paused)
+			pauseTimer = 3; //pause timer is always 3 long
 		paused = false;
-		this.rootNode.detachChild(this.pausedText);
 	}
 	@Override
 	protected void onDisable() { 
