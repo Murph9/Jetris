@@ -1,7 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
-def mainClassName = 'jetris.base.Main'
+def mainClassName = 'base.Main'
 
 repositories {
 	jcenter()
