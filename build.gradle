@@ -1,0 +1,24 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+def mainClassName = 'jetris.base.Main'
+
+repositories {
+	jcenter()
+	maven { url "https://dl.bintray.com/jmonkeyengine/org.jmonkeyengine" }
+}
+
+jar {
+	manifest {
+		attributes 'Main-Class': '${mainClassName}'
+	}
+	
+	exclude ('META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA')
+}
+
+dependencies {
+	compile 'org.jmonkeyengine:jme3-core:3.2.2-stable'
+	compile 'org.jmonkeyengine:jme3-desktop:3.2.2-stable'
+	compile 'org.jmonkeyengine:jme3-lwjgl:3.2.2-stable'
+	compile 'com.simsilica:lemur:1.11.0'
+}
