@@ -10,9 +10,7 @@ import com.jme3.material.Material;
 import com.jme3.material.RenderState.BlendMode;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
-import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
-import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
@@ -24,7 +22,6 @@ public class BackgroundState extends BaseAppState {
 	//http://guidohenkel.com/2018/05/endless_starfield_unity/
 	//TODO particles are in front of everything, probably because this is added to GUI node first
 
-	private Node rootNode;
 	private Node rootGUINode;
 
 	private Mesh mesh;
@@ -44,11 +41,8 @@ public class BackgroundState extends BaseAppState {
 		
 		SimpleApplication sm = (SimpleApplication)app;
 		
-		rootNode = new Node("Background root node");
-		sm.getRootNode().attachChild(rootNode);
-		
 		rootGUINode = new Node("Background gui root node");
-		sm.getGuiNode().attachChild(rootGUINode); //TODO don't use gui node
+		sm.getGuiNode().attachChild(rootGUINode);
 		
 		height = sm.getCamera().getHeight();
 		width = sm.getCamera().getWidth();
@@ -59,7 +53,7 @@ public class BackgroundState extends BaseAppState {
 			Vector3f pos = H.randV3f(1, false);
 			pos.y *= height;
 			pos.x *= width;
-			pos.z = -10;
+			pos.z = -1500000;
 			particles.add(pos);
 			
 			particleParallax.add(new Float(FastMath.nextRandomFloat()*30));
@@ -74,25 +68,21 @@ public class BackgroundState extends BaseAppState {
 		Geometry geo = new Geometry("particles", mesh); // using our custom mesh object
 		Material mat = new Material(sm.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
 		mat.setColor("Color", ColorRGBA.White);
+		mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
 		geo.setMaterial(mat);
 		rootGUINode.attachChild(geo);
 
 
 		//generate play field sized quad for the field background
 		float xSize = CellHelper.fieldWidth(height, PlayState.X_SIZE/2, (PlayState.Y_SIZE-PlayState.Y_HIDDEN)/2)/2f;
-		
-		Vector3f worldPos0 = sm.getCamera().getWorldCoordinates(new Vector2f(width/2f-xSize, 0), 0);
-		Vector3f worldPos1 = sm.getCamera().getWorldCoordinates(new Vector2f(width/2f+xSize, 0), 0);
-		Vector3f worldPos2 = sm.getCamera().getWorldCoordinates(new Vector2f(width/2f+xSize, height), 0);
-		Vector3f worldPos3 = sm.getCamera().getWorldCoordinates(new Vector2f(width/2f-xSize, height), 0);
-		//TODO: BufferUtils.addInBuffer
+
 		Mesh m = new Mesh();
 		m.setBuffer(Type.Position, 3, new float[] {
-			worldPos0.x, worldPos0.y, worldPos0.z,
-			worldPos1.x, worldPos1.y, worldPos1.z,
-			worldPos2.x, worldPos2.y, worldPos2.z,
-            worldPos3.x, worldPos3.y, worldPos3.z
-        });
+				width/2f-xSize, 0, -10,
+				width/2f+xSize, 0, -10,
+				width/2f+xSize, height, -10,
+				width/2f-xSize, height, -10
+	        });
 		m.setBuffer(Type.Index, 3, new short[]{0, 1, 2, 0, 2, 3});
 		m.updateBound();
 		m.setStatic();
@@ -102,8 +92,7 @@ public class BackgroundState extends BaseAppState {
 		mat.setColor("Color", new ColorRGBA(1,1,1,0.08f));
 		mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
 		g.setMaterial(mat);
-		g.setQueueBucket(Bucket.Transparent);
-		rootNode.attachChild(g);
+		rootGUINode.attachChild(g);
 	}
 
 	@Override
@@ -121,7 +110,6 @@ public class BackgroundState extends BaseAppState {
 	protected void cleanup(Application app) {
 		SimpleApplication sm = (SimpleApplication)app;
 		sm.getGuiNode().detachChild(rootGUINode);
-		sm.getRootNode().detachChild(rootNode);
 	}
 
 	@Override
