@@ -8,6 +8,10 @@ repositories {
 	maven { url "https://dl.bintray.com/jmonkeyengine/org.jmonkeyengine" }
 }
 
+sourceSets {
+        main.java.srcDirs = ['src/']
+}
+
 jar {
 	manifest {
 		attributes 'Main-Class': '${mainClassName}'
