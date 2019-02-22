@@ -5,7 +5,6 @@ public class Cell {
 	private int x;
 	private int y;
 	private CellColour colour;
-	
 	private boolean full;
 	
 	public Cell(int x, int y) {
@@ -37,10 +36,11 @@ public class Cell {
 	public CellColour getColour() { return this.colour; }
 	public boolean getFilled() { return this.full; }
 	
-	
+	@Override
 	public Cell clone() {
 		Cell cloned = new Cell(this.x, this.y);
-		cloned.fill(this.colour);
+		cloned.colour = this.colour;
+		cloned.full = this.full;
 		return cloned;
 	}
 	
