@@ -89,7 +89,13 @@ public class MenuState extends BaseAppState {
 	}
 	private Panel generateInfoTab() {
 		Container c = new Container();
-		c.addChild(new Label("<lots of text about info and stuff, which hopefully word wraps."));
+		c.addChild(new Label("ASD or arrows left,right for moving"));
+		c.addChild(new Label("X and up for rotation with Ctrl and Z the other direction"));
+		c.addChild(new Label("Esc and f1 for pausing"));
+		c.addChild(new Label("Space for hard drop"));
+		c.addChild(new Label("Shift and C for hold"));
+		c.addChild(new Label(""));
+		c.addChild(new Label("The numpad also works."));
 		return c;
 	}
 	@SuppressWarnings("unchecked")
