@@ -65,11 +65,13 @@ public class MenuState extends BaseAppState {
 		
 		TabbedPanel myWindow = new TabbedPanel();
 		myWindow.addTab("Leaderboard", generateLeaderboardTab());
-		myWindow.addTab("Info/Controls", generateInfoTab());
+		myWindow.addTab("Info", generateInfoTab());
 		myWindow.addTab("Settings", generateSettingsTab());
 		
-		
 		mainWindow.addChild(myWindow, Position.Center);
+		
+		float width = CellHelper.fieldWidth(sa.getCamera().getHeight(), PlayState.X_SIZE/2, (PlayState.Y_SIZE-PlayState.Y_HIDDEN)/2)/2f;
+		mainWindow.setPreferredSize(new Vector3f(sa.getCamera().getWidth()/2 - width, sa.getCamera().getHeight(), 0));
 	}
 
 	private Panel generateLeaderboardTab() {
