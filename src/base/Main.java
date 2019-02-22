@@ -24,7 +24,8 @@ public class Main extends SimpleApplication {
 	
 	private MenuState menuState;
 	private PlayState playState;
-	
+	private AiPlayState aiPlayState;
+
 	private BackgroundState spaceState;
 	
 	@Override
@@ -51,13 +52,19 @@ public class Main extends SimpleApplication {
 		//spaceState init
 		spaceState = new BackgroundState(100);
 		getStateManager().attach(spaceState);
-		
+
 		//start game
 		menuState = new MenuState(this);
 		getStateManager().attach(menuState);
+
+		//load ai to give some background motion 
+		aiPlayState = new AiPlayState(this);
+		getStateManager().attach(aiPlayState);
 	}
 	
 	public void startPlay() {
+		getStateManager().detach(aiPlayState);
+		aiPlayState = null;
 		getStateManager().detach(menuState);
 		menuState = null;
 		
@@ -65,14 +72,26 @@ public class Main extends SimpleApplication {
 		getStateManager().attach(playState);
 	}
 	
-	public void gameLost(Record r) {
-		getStateManager().detach(playState);
-		playState = null;
-		
-		//save score
-		RecordManager.saveRecord(r, "A");
-		
-		menuState = new MenuState(this);
-		getStateManager().attach(menuState);
+	public void gameLost(PlayState state, Record r) {
+		if (state instanceof AiPlayState) {
+			//don't save record, and reload
+			getStateManager().detach(aiPlayState);
+			aiPlayState = new AiPlayState(this);
+			getStateManager().attach(aiPlayState);
+
+		} else {
+
+			getStateManager().detach(playState);
+			playState = null;
+			
+			//save score
+			RecordManager.saveRecord(r, "A");
+			
+			menuState = new MenuState(this);
+			getStateManager().attach(menuState);
+
+			aiPlayState = new AiPlayState(this);
+			getStateManager().attach(aiPlayState);
+		}
 	}
 }

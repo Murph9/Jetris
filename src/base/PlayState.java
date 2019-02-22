@@ -39,7 +39,7 @@ public class PlayState extends BaseAppState {
 	public static final int NEXT_SHAPE_COUNT = 3;
 	
 	//http://tetris.wikia.com/wiki/Line_clear#Delay
-	private static final float LINE_DELAY = 0.5f; //units: sec (TODO should be logic side)
+	protected static final float LINE_DELAY = 0.5f; //units: sec (TODO should be logic side)
 	
 	private static ColorRGBA DEFAULT_CELL_COLOR = ColorRGBA.BlackNoAlpha;
 	private static Vector3f POS_OFFSCREEN = new Vector3f(-100, -100, 0);
@@ -50,7 +50,7 @@ public class PlayState extends BaseAppState {
 	private Material defaultMeshMat;
 	
 	private Node rootNode;
-	private Tetris engine;
+	protected Tetris engine;
 	
 	private BitmapText scoreText;
 	private BitmapText linesText;
@@ -249,7 +249,7 @@ public class PlayState extends BaseAppState {
 		if (engine.isGameOver()) {
 			gameOverTimer -= tpf;
 			if (gameOverTimer < 0)
-				main.gameLost(new Record(engine.getScore(), engine.getLinesCount()));
+				main.gameLost(this, new Record(engine.getScore(), engine.getLinesCount()));
 			
 			return;
 		}

@@ -6,7 +6,7 @@ import java.util.List;
 
 public class TetrisGame implements Tetris {
 	
-	private final float LOCK_DELAY = 0.5f; //feels weird, like it should get less per level
+	private static final float LOCK_DELAY = 0.5f; //feels weird, like it should get less per level
 	//note this for later: https://tetris.fandom.com/wiki/Infinity
 	//whats funny is it mentions 'O' being able to rotate forever as well 
 	
@@ -114,6 +114,9 @@ public class TetrisGame implements Tetris {
 		return (float) Math.pow(0.8f-((level-1)*0.007f), level-1);
 	}
 	
+	public Shape.Type curShapeType() {
+		return this.curShape.type;
+	}
 	public List<Cell> curShapeCells() {
 		return new LinkedList<>(this.curShape.shapeCells);
 	}
@@ -165,7 +168,7 @@ public class TetrisGame implements Tetris {
 			newState.translate(0, this.softCount);
 			this.softCount *= 2; //hard drop gets double points
 			this.curShape = newState;
-			if (settings.hardDropLock) { //TODO basically forfeits and softlock points 
+			if (settings.hardDropLock) { //TODO basically forfeits any softlock points 
 				blockHit();
 				return;
 			}
@@ -393,7 +396,7 @@ public class TetrisGame implements Tetris {
 		}
 	}
 	
-	private int minDrop() {
+	public int minDrop() {
 		if (curShape == null) 
 			return -1;
 		
@@ -416,5 +419,40 @@ public class TetrisGame implements Tetris {
 	@Override
 	public String toString() {
 		return "Tetris: " + this.score + " " + this.lines + " " + this.curShape.type;
+	}
+
+	public TetrisGame cloneForAI() {
+		TetrisGame tg = new TetrisGame(this.width, this.height, this.nextShapes.length, this.settings);
+		
+		//clone cell grid
+		for (int i = 0; i < this.cells.length; i++)
+			for (int j = 0; j < this.cells[i].length; j++)
+				tg.cells[i][j] = this.cells[i][j].clone();
+		
+		//clone next/cur/hold shapes
+		if (this.curShape != null)
+			tg.curShape = this.curShape.clone();
+		if (this.holdShape != null)
+			tg.holdShape = this.holdShape.clone();
+		for (int i = 0; i < this.nextShapes.length; i++)
+			tg.nextShapes[i] = this.nextShapes[i].clone();
+		
+		//clone basic fields
+		tg.level = this.level;
+		tg.levelPoints = this.levelPoints;
+		tg.score = this.score;
+		tg.lines = this.lines;
+		
+		//state fields
+		tg.softCount = this.softCount;
+		tg.dropTimer = this.dropTimer;
+		tg.lockTimer = this.lockTimer;
+		tg.pieceHeld = this.pieceHeld;
+		tg.lineCombo = this.lineCombo;
+
+		for (Integer i: this.flashRows)
+			tg.flashRows.add(i);
+
+		return tg;
 	}
 }

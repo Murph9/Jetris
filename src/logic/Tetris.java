@@ -7,6 +7,7 @@ public interface Tetris {
 	public void initialise();
 	public void update(float tpf);
 	
+	public Shape.Type curShapeType();
 	public List<Cell> curShapeCells();
 	public List<Cell> ghostShapeCells();
 	public List<Cell> holdShapeCells();
