@@ -25,7 +25,8 @@ public class Settings implements ISettings {
         	this.settings.put(Key.HardDropLock, true);
         if (!this.settings.containsKey(Key.RandomColours))
         	this.settings.put(Key.RandomColours, false);
-    
+        if (!this.settings.containsKey(Key.SoundEffects))
+        	this.settings.put(Key.SoundEffects, true);
     }
 
     private boolean getBool(SettingsManager.Key key) {
@@ -46,6 +47,7 @@ public class Settings implements ISettings {
     public boolean expertMode() { return getBool(Key.ExpertMode); }
     public boolean hardDropLock() { return getBool(Key.HardDropLock); }
     public boolean greyScale() { return getBool(Key.GreyScale); }
+    public boolean useSoundEffects() { return getBool(Key.SoundEffects); }
 
     //TODO other things:
     //- random generator bag size, or toggle

@@ -137,6 +137,12 @@ public class MenuState extends BaseAppState {
 		cb.setChecked(settings.expertMode());
 		cb.addClickCommands((chk -> saveSettings()));
 		checkboxes.put(SettingsManager.Key.ExpertMode, cb);
+		
+		c.addChild(new Label("Sound Effects"));
+		cb = c.addChild(new Checkbox(SettingsManager.Key.SoundEffects.name()), 1);
+		cb.setChecked(settings.useSoundEffects());
+		cb.addClickCommands((chk -> saveSettings()));
+		checkboxes.put(SettingsManager.Key.SoundEffects, cb);
 
 		return c;
 	}

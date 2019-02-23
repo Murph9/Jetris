@@ -23,7 +23,8 @@ public class SettingsManager {
         Ghost("ghost"),
         HardDropLock("hardDropLock"),
         GreyScale("greyScale"),
-        ExpertMode("expertMode");
+        ExpertMode("expertMode"),
+		SoundEffects("SoundEffects");
 
         private final String key;
         private final Class<?> type;

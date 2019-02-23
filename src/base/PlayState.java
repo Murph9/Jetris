@@ -101,8 +101,10 @@ public class PlayState extends BaseAppState {
 		((SimpleApplication)app).getRootNode().attachChild(rootNode);
 		
 		//init sounds
-		this.sounds = new PlayStateSoundManager(this.engine);
-		app.getStateManager().attach(sounds);
+		if (settings.useSoundEffects()) {
+			this.sounds = new PlayStateSoundManager(this.engine);
+			app.getStateManager().attach(sounds);
+		}
 		
 		//init visual things
 		int screenHeight = ((SimpleApplication)app).getCamera().getHeight();
@@ -444,7 +446,9 @@ public class PlayState extends BaseAppState {
 	@Override
 	protected void cleanup(Application app) {
 		((SimpleApplication)app).getRootNode().detachChild(rootNode);
-		app.getStateManager().detach(sounds);
+		
+		if (sounds != null)
+			app.getStateManager().detach(sounds);
 	}
 	@Override
 	protected void onEnable() {
