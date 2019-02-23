@@ -28,8 +28,10 @@ public interface Tetris {
 	public void moveSide(boolean left);
 	public void rotate(boolean right);
 	
-	public boolean isGameOver();
+	public void addEventListener(TetrisEventListener listener);
+	public void removeEventListener(TetrisEventListener listener);
 	
+	public boolean isGameOver();
 	
 	//Design decision:
 	//At least the newLine and 'ended' states should be events (via listeners)

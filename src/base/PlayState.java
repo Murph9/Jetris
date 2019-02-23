@@ -71,6 +71,8 @@ public class PlayState extends BaseAppState {
 	private boolean paused;
 	private float pauseTimer;
 	
+	private PlayStateSoundManager sounds;
+	
 	public PlayState(Main m) {
 		this.main = m;
 	}
@@ -98,7 +100,11 @@ public class PlayState extends BaseAppState {
 		this.rootNode.setQueueBucket(Bucket.Gui);
 		((SimpleApplication)app).getRootNode().attachChild(rootNode);
 		
+		//init sounds
+		this.sounds = new PlayStateSoundManager(this.engine);
+		app.getStateManager().attach(sounds);
 		
+		//init visual things
 		int screenHeight = ((SimpleApplication)app).getCamera().getHeight();
 		int screenWidth = ((SimpleApplication)app).getCamera().getWidth();
 
@@ -438,6 +444,7 @@ public class PlayState extends BaseAppState {
 	@Override
 	protected void cleanup(Application app) {
 		((SimpleApplication)app).getRootNode().detachChild(rootNode);
+		app.getStateManager().detach(sounds);
 	}
 	@Override
 	protected void onEnable() {

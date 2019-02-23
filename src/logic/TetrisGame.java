@@ -53,6 +53,8 @@ public class TetrisGame implements Tetris {
 	private boolean ended;
 	public boolean isGameOver() { return ended; }
 	
+	private List<TetrisEventListener> listeners;
+	
 	public TetrisGame(int width, int height, int nextShapes, LogicSettings settings) {
 		this.settings = settings; //TODO null check
 		this.width = width;
@@ -70,6 +72,16 @@ public class TetrisGame implements Tetris {
 				this.cells[y][x] = new Cell(x, y);
 			}
 		}
+		
+		this.listeners = new LinkedList<TetrisEventListener>();
+	}
+	
+	public void addEventListener(TetrisEventListener listener) {
+		this.listeners.add(listener);
+	}
+	public void removeEventListener(TetrisEventListener listener) {
+		if (this.listeners.contains(listener))
+			this.listeners.remove(listener);
 	}
 	
 	public void initialise() {
@@ -225,9 +237,14 @@ public class TetrisGame implements Tetris {
 			if (this.lockTimer == 0 && (action == InputAction.SOFT_DOWN || action == InputAction.GRAVITY_DOWN || action == InputAction.HARD_DOWN)) {
 				//a down move failed, trigger lock delay
 				this.lockTimer = LOCK_DELAY;
+				triggerSound(SoundType.StartLockDelay);
+			} else {
+				triggerSound(SoundType.NotMove);
 			}
 			return;
 		}
+		
+		triggerSound(SoundType.Movement);
 		
 		//valid move, so update curShape
 		this.curShape = newState;
@@ -252,6 +269,8 @@ public class TetrisGame implements Tetris {
 		//place block, spawn the next one
 		pieceHeld = false;
 		
+		triggerSound(SoundType.Lock);
+		
 		//stop the drop timer from working
 		this.dropTimer = Float.MAX_VALUE;
 
@@ -269,6 +288,7 @@ public class TetrisGame implements Tetris {
 		//check for new lines
 		updateFlashRows();
 		if (newLine()) {
+			triggerSound(SoundType.NewLine);
 			return;
 		}
 		
@@ -454,5 +474,45 @@ public class TetrisGame implements Tetris {
 			tg.flashRows.add(i);
 
 		return tg;
+	}
+	
+	enum SoundType {
+		NewLine,
+		GameOver,
+		
+		Rotation,
+		Movement,
+		NotMove,
+		StartLockDelay,
+		Lock;
+	}
+	private void triggerSound(SoundType st) {
+		for (TetrisEventListener ls: this.listeners) {
+			switch(st) {
+			case NewLine:
+				ls.onNewLine();
+				break;
+			case GameOver:
+				ls.onGameOver();
+				break;
+			case Rotation:
+				ls.onRotation();
+				break;
+			case Movement:
+				ls.onMovement();
+				break;
+			case NotMove:
+				ls.onNotMove();
+				break;
+			case StartLockDelay:
+				ls.onStartLockDelay();
+				break;
+			case Lock:
+				ls.onLock();
+				break;
+			default:
+				break;
+			}
+		}
 	}
 }
