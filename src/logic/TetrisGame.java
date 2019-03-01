@@ -237,14 +237,14 @@ public class TetrisGame implements Tetris {
 			if (this.lockTimer == 0 && (action == InputAction.SOFT_DOWN || action == InputAction.GRAVITY_DOWN || action == InputAction.HARD_DOWN)) {
 				//a down move failed, trigger lock delay
 				this.lockTimer = LOCK_DELAY;
-				triggerSound(SoundType.StartLockDelay);
+				triggerEvent(EventType.StartLockDelay);
 			} else {
-				triggerSound(SoundType.NotMove);
+				triggerEvent(EventType.NotMove);
 			}
 			return;
 		}
 		
-		triggerSound(SoundType.Movement);
+		triggerEvent(EventType.Movement);
 		
 		//valid move, so update curShape
 		this.curShape = newState;
@@ -269,7 +269,7 @@ public class TetrisGame implements Tetris {
 		//place block, spawn the next one
 		pieceHeld = false;
 		
-		triggerSound(SoundType.Lock);
+		triggerEvent(EventType.Lock);
 		
 		//stop the drop timer from working
 		this.dropTimer = Float.MAX_VALUE;
@@ -288,7 +288,7 @@ public class TetrisGame implements Tetris {
 		//check for new lines
 		updateFlashRows();
 		if (newLine()) {
-			triggerSound(SoundType.NewLine);
+			triggerEvent(EventType.NewLine, getLines().size());
 			return;
 		}
 		
@@ -372,6 +372,8 @@ public class TetrisGame implements Tetris {
 		
 		this.lineCombo++;
 		this.score += 50*lineCombo*level;
+		
+		triggerEvent(EventType.LineCombo, lineCombo);
 
 		switch (lines) {
 		case 1: //single
@@ -476,8 +478,9 @@ public class TetrisGame implements Tetris {
 		return tg;
 	}
 	
-	enum SoundType {
+	enum EventType {
 		NewLine,
+		LineCombo,
 		GameOver,
 		
 		Rotation,
@@ -486,11 +489,17 @@ public class TetrisGame implements Tetris {
 		StartLockDelay,
 		Lock;
 	}
-	private void triggerSound(SoundType st) {
+	private void triggerEvent(EventType st) {
+		triggerEvent(st, -1);
+	}
+	private void triggerEvent(EventType st, int int1) {
 		for (TetrisEventListener ls: this.listeners) {
 			switch(st) {
 			case NewLine:
-				ls.onNewLine();
+				ls.onNewLine(int1);
+				break;
+			case LineCombo:
+				ls.onLineCombo(int1);
 				break;
 			case GameOver:
 				ls.onGameOver();

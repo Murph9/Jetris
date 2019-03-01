@@ -1,8 +1,11 @@
 package base;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.function.Consumer;
 
 import com.jme3.app.Application;
@@ -73,6 +76,10 @@ public class PlayState extends BaseAppState {
 	
 	private PlayStateSoundManager sounds;
 	
+	private Queue<String> logEntries;
+	private PlayStateEventLogger logger;
+	private BitmapText eventLog;
+	
 	public PlayState(Main m) {
 		this.main = m;
 	}
@@ -132,6 +139,20 @@ public class PlayState extends BaseAppState {
 		this.levelText.setColor(ColorRGBA.White);
 		this.levelText.setSize(fontSize);
 		this.rootNode.attachChild(this.levelText);
+		
+		
+		this.eventLog = new BitmapText(font, false);
+		this.eventLog.setLocalTranslation(50, screenHeight - fontSize*1, 0);
+		this.eventLog.setText("...");
+		this.eventLog.setColor(ColorRGBA.White);
+		this.eventLog.setSize(fontSize);
+		this.rootNode.attachChild(this.eventLog);
+
+		this.logger = new PlayStateEventLogger((String log) -> {
+			addEventLogEntry(log);
+		});
+		this.engine.addEventListener(logger);
+		this.logEntries = new LinkedList<String>();
 		
 		this.pausedText = new BitmapText(font, false);
 		this.pausedText.setLocalTranslation(screenWidth/2, screenHeight/2, 0);
@@ -441,7 +462,22 @@ public class PlayState extends BaseAppState {
 		);
 	}
 
-
+	private void addEventLogEntry(String s) {
+		//add new log to the top, and limit to 10 rows
+		//TODO this method is really long and expensive for what it does
+		
+		this.logEntries.add(s);
+		if (this.logEntries.size() > 10) //limit to 10 rows
+			this.logEntries.poll();
+		
+		StringBuilder sb = new StringBuilder();
+		List<String> list = new ArrayList<String>(logEntries);
+		Collections.reverse(list);
+		for (String event: list) {
+			sb.append(event + "\n");
+		}
+		this.eventLog.setText(sb.toString());
+	}
 
 	@Override
 	protected void cleanup(Application app) {

@@ -2,7 +2,9 @@ package logic;
 
 public interface TetrisEventListener {
 
-	void onNewLine();
+	void onNewLine(int count);
+	void onLineCombo(int count);
+	
 	void onGameOver();
 	
 	void onRotation();

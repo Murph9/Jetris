@@ -98,8 +98,13 @@ public class PlayStateSoundManager extends BaseAppState {
 		}
 		
 		@Override
-		public void onNewLine() {
+		public void onNewLine(int count) {
 			newLine.play();
+		}
+		
+		@Override
+		public void onLineCombo(int count) {
+			
 		}
 
 		@Override
