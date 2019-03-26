@@ -17,6 +17,8 @@ public class PlayStateSoundManager extends BaseAppState {
 	private Node rootNode;
 	private final Tetris engine;
 	
+	private AudioNode backgroundMusic;
+	
 	public PlayStateSoundManager(Tetris engine) {
 		this.engine = engine;
 		
@@ -28,19 +30,34 @@ public class PlayStateSoundManager extends BaseAppState {
 		((SimpleApplication)app).getRootNode().attachChild(rootNode);
 		soundy = new SoundListener(rootNode, app.getAssetManager());
 		engine.addEventListener(soundy);
+		
+		//add looping background sound
+		backgroundMusic = new AudioNode(app.getAssetManager(), "assets/sounds/jetris_theme-02.wav", DataType.Stream);
+		backgroundMusic.setLooping(true);
+		backgroundMusic.setPositional(false);
+		backgroundMusic.setVolume(3); //TODO does this not make it louder?
+		rootNode.attachChild(backgroundMusic);
 	}
 
 	@Override
 	protected void cleanup(Application app) {
 		((Main)app).getRootNode().detachChild(rootNode);
 		engine.removeEventListener(soundy);
+		
+		rootNode.detachChild(backgroundMusic);
 	}
 
 	@Override
-	protected void onEnable() {}
+	protected void onEnable() {
+		if (backgroundMusic != null)
+			backgroundMusic.play();
+	}
 
 	@Override
-	protected void onDisable() {}
+	protected void onDisable() {
+		if (backgroundMusic != null)
+			backgroundMusic.pause();
+	}
 	
 	class SoundListener implements TetrisEventListener {
 
