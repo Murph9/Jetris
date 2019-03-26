@@ -49,6 +49,8 @@ public class TetrisGame implements Tetris {
 	 */
 	public boolean newLine() { return !flashRows.isEmpty(); }
 	public List<Integer> getLines() { return new LinkedList<Integer>(flashRows); }
+	
+	private final LinkedList<InputAction> lineModeActionBuffer;
 
 	private boolean ended;
 	public boolean isGameOver() { return ended; }
@@ -60,6 +62,7 @@ public class TetrisGame implements Tetris {
 		this.width = width;
 		this.height = height;
 		this.flashRows = new LinkedList<Integer>();
+		this.lineModeActionBuffer = new LinkedList<>();
 		this.shapeGenerator = new Generator(Shape.Type.values());
 		this.nextShapes = new Shape[nextShapes];
 		
@@ -169,8 +172,11 @@ public class TetrisGame implements Tetris {
 	private void movePiece(InputAction action) {
 		if (curShape == null || this.ended)
 			return; 
-		if (this.newLine())
-			return; //TODO add ignore/buffer during line show mode
+		if (this.newLine()) {
+			//add action buffer during line show mode
+			lineModeActionBuffer.add(action);
+			return; 
+		}
 		
 		Shape newState = this.curShape.clone();
 		switch (action) {
@@ -309,6 +315,13 @@ public class TetrisGame implements Tetris {
 		this.flashRows.clear();
 
 		spawnNextBlock();
+		
+		//then run through the list of buffered actions
+		List<InputAction> actions = new LinkedList<>(this.lineModeActionBuffer);
+		lineModeActionBuffer.clear(); //prevent this buffer fill from duping if causing a line
+		for (InputAction a: actions) {
+			this.movePiece(a);
+		}
 	}
 	
 	private void spawnNextBlock() {
