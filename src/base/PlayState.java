@@ -1,11 +1,9 @@
 package base;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.function.Consumer;
 
 import com.jme3.app.Application;
@@ -76,7 +74,8 @@ public class PlayState extends BaseAppState {
 	
 	private PlayStateSoundManager sounds;
 	
-	private Queue<String> logEntries;
+	private static final int EVENT_LOG_SIZE = 10;
+	private LinkedList<String> logEntries;
 	private PlayStateEventLogger logger;
 	private BitmapText eventLog;
 	
@@ -463,17 +462,14 @@ public class PlayState extends BaseAppState {
 	}
 
 	private void addEventLogEntry(String s) {
-		//add new log to the top, and limit to 10 rows
-		//TODO this method is really long and expensive for what it does
+		//add new log to the top, and limit to X rows
 		
-		this.logEntries.add(s);
-		if (this.logEntries.size() > 10) //limit to 10 rows
-			this.logEntries.poll();
+		this.logEntries.addFirst(s);
+		if (this.logEntries.size() > EVENT_LOG_SIZE)
+			this.logEntries.remove(EVENT_LOG_SIZE); //remove the last entry
 		
 		StringBuilder sb = new StringBuilder();
-		List<String> list = new ArrayList<String>(logEntries);
-		Collections.reverse(list);
-		for (String event: list) {
+		for (String event: logEntries) {
 			sb.append(event + "\n");
 		}
 		this.eventLog.setText(sb.toString());

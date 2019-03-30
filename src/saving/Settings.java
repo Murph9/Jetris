@@ -13,7 +13,7 @@ public class Settings implements ISettings {
         } else {
             this.settings = new HashMap<Key, Object>();
         }
-            
+        
         //set defaults that don't exist
         if (!this.settings.containsKey(Key.ExpertMode))
         	this.settings.put(Key.ExpertMode, false);
@@ -52,6 +52,5 @@ public class Settings implements ISettings {
     //TODO other things:
     //- random generator bag size, or toggle
     //- hold piece
-    //- sound effects toggle
     //- background stars
 }
