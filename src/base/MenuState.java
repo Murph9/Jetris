@@ -1,5 +1,6 @@
 package base;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -81,7 +82,8 @@ public class MenuState extends BaseAppState {
 		myWindow.addChild(new Label("Score"), 1, 0);
 		myWindow.addChild(new Label("Lines"), 1, 1);
 	
-		List<Record> records = RecordManager.getRecords("A");
+		List<Record> records = RecordManager.getRecords(RecordManager.TYPE_A);
+		Collections.sort(records);
 		for (int i = 0; i < Math.min(records.size(), 10); i++) {
 			Record r = records.get(i);
 			myWindow.addChild(new Label(r.getScore() + (r.isNew() ? "*" : "")), 2 + i, 0);
@@ -91,55 +93,48 @@ public class MenuState extends BaseAppState {
 	}
 	private Panel generateInfoTab() {
 		Container c = new Container();
-		c.addChild(new Label("ASD or arrows left,right for moving"));
-		c.addChild(new Label("X and up for rotation with Ctrl and Z the other direction"));
-		c.addChild(new Label("Esc and f1 for pausing"));
-		c.addChild(new Label("Space for hard drop"));
-		c.addChild(new Label("Shift and C for hold"));
-		c.addChild(new Label(""));
-		c.addChild(new Label("The numpad also works."));
+		c.addChild(new Label("A, D or LeftArrow,RightArrow for moving sideways"));
+		c.addChild(new Label("X or UpArrow for clockwise rotation"));
+		c.addChild(new Label("Ctrl and Z for anti-clockwise rotation"));
+		c.addChild(new Label("Space for hard drop and S or DownArrow for soft-drop"));
+		c.addChild(new Label("Shift and C for holding the current piece"));
+		c.addChild(new Label("Esc and F1 for pausing"));
+		c.addChild(new Label("The numpad also has a mapping."));
 		return c;
 	}
 	@SuppressWarnings("unchecked")
 	private Panel generateSettingsTab() {
-		//maybe use CheckBoxModel
 		ISettings settings = SettingsManager.load();
 		Container c = new Container();
 		
 		checkboxes = new HashMap<>();
 		
-		c.addChild(new Label("Rand Colours"));
-		Checkbox cb = c.addChild(new Checkbox(SettingsManager.Key.RandomColours.name()), 1);
+		Checkbox cb = c.addChild(new Checkbox(SettingsManager.Key.RandomColours.name()));
 		cb.setChecked(settings.randomColours());
 		cb.addClickCommands((chk -> saveSettings()));
 		checkboxes.put(SettingsManager.Key.RandomColours, cb);
 		
-		c.addChild(new Label("Grey Scale"));
-		cb = c.addChild(new Checkbox(SettingsManager.Key.GreyScale.name()), 1);
+		cb = c.addChild(new Checkbox(SettingsManager.Key.GreyScale.name()));
 		cb.setChecked(settings.greyScale());
 		cb.addClickCommands((chk -> saveSettings()));
 		checkboxes.put(SettingsManager.Key.GreyScale, cb);
 		
-		c.addChild(new Label("Ghost Shape"));
-		cb = c.addChild(new Checkbox(SettingsManager.Key.Ghost.name()), 1);
+		cb = c.addChild(new Checkbox(SettingsManager.Key.Ghost.name()));
 		cb.setChecked(settings.ghost());
 		cb.addClickCommands((chk -> saveSettings()));
 		checkboxes.put(SettingsManager.Key.Ghost, cb);
 		
-		c.addChild(new Label("Hard Drop Lock"));
-		cb = c.addChild(new Checkbox(SettingsManager.Key.HardDropLock.name()), 1);
+		cb = c.addChild(new Checkbox(SettingsManager.Key.HardDropLock.name()));
 		cb.setChecked(settings.hardDropLock());
 		cb.addClickCommands((chk -> saveSettings()));
 		checkboxes.put(SettingsManager.Key.HardDropLock, cb);
 		
-		c.addChild(new Label("Expert Mode"));
-		cb = c.addChild(new Checkbox(SettingsManager.Key.ExpertMode.name()), 1);
+		cb = c.addChild(new Checkbox(SettingsManager.Key.ExpertMode.name()));
 		cb.setChecked(settings.expertMode());
 		cb.addClickCommands((chk -> saveSettings()));
 		checkboxes.put(SettingsManager.Key.ExpertMode, cb);
 		
-		c.addChild(new Label("Sound Effects"));
-		cb = c.addChild(new Checkbox(SettingsManager.Key.SoundEffects.name()), 1);
+		cb = c.addChild(new Checkbox(SettingsManager.Key.SoundEffects.name()));
 		cb.setChecked(settings.useSoundEffects());
 		cb.addClickCommands((chk -> saveSettings()));
 		checkboxes.put(SettingsManager.Key.SoundEffects, cb);

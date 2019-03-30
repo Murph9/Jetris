@@ -11,10 +11,9 @@ import com.simsilica.lemur.style.Attributes;
 import com.simsilica.lemur.style.Styles;
 
 public class LemurGuiStyle {
-	//https://hub.jmonkeyengine.org/t/many-little-lemur-questions/40244/14
+    //https://hub.jmonkeyengine.org/t/many-little-lemur-questions/40244/14
+    private static final String STYLE_NAME = "my_style";
 
-	private static final String STYLE_NAME = "my_style";
-	
     public static void load(AssetManager assetManager) {
         Styles styles = GuiGlobals.getInstance().getStyles();
 
@@ -101,11 +100,15 @@ public class LemurGuiStyle {
         attrs = styles.getSelector("tab.button", STYLE_NAME);
         attrs.set("background", gradient.clone());
         ((TbtQuadBackgroundComponent)attrs.get("background")).setColor(new ColorRGBA(0.25f, 0.5f, 0.5f, 0.5f));
-        ((TbtQuadBackgroundComponent)attrs.get("background")).setMargin(12, 6);
+        ((TbtQuadBackgroundComponent)attrs.get("background")).setMargin(6, 4);
         attrs.set("color", new ColorRGBA(0.4f, 0.45f, 0.5f, 0.85f));
-        attrs.set("insets", new Insets3f(12,6,0,6));
+        attrs.set("insets", new Insets3f(6,4,0,4));
         
+        // checkbox text
+        attrs = styles.getSelector("checkbox", STYLE_NAME);
+        attrs.set("color", new ColorRGBA(0, 0, 0, 0.85f));
+
         // Set this as the default style
-  		GuiGlobals.getInstance().getStyles().setDefaultStyle(STYLE_NAME);
+        GuiGlobals.getInstance().getStyles().setDefaultStyle(STYLE_NAME);
     }
 }

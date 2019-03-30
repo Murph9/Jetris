@@ -8,61 +8,73 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
 public class RecordManager {
 
+	public static final String TYPE_A = "A";
+
 	private static Record lastRecord;
-	
-	//TODO caching? (on read we don't need to read it again)
+	private static List<Record> _records;
 	
 	private static File getFile(String gameType) {
 		String fileName = Paths.get(Base.FOLDER, gameType+".score").toString();
 		return new File(fileName);
 	}
 	
+	/**
+	 * Returns the current list of records for the given game type.
+	 * @param gameType String 
+	 * @return An unsorted list
+	 */
 	public static List<Record> getRecords(String gameType) {
 		
+		if (_records != null)
+			return _records; //use cached value
+
 		List<Record> records = new LinkedList<Record>(); //start to read records
 		Scanner scoresScanner = null;
 		try {
 			File saveFile = getFile(gameType);
 			
-			//create file if it doesn't exist
-			saveFile.getParentFile().mkdirs();//create the directory if it doesn't exist
-			saveFile.createNewFile(); //try to create a new file
+			//create file and its directory if they don't exist
+			saveFile.getParentFile().mkdirs();
+			saveFile.createNewFile();
 		
-			//read the file
+			//read the file int per int
 			FileReader reader = new FileReader(saveFile);
 			scoresScanner = new Scanner(reader);
-			while(scoresScanner.hasNext()) {
+			while (scoresScanner.hasNext()) {
 				Record rec = new Record(scoresScanner.nextInt(), scoresScanner.nextInt());
 				if (rec.equals(lastRecord))
-					rec.setIsNew(true);
+					rec.setIsNew(true); //if the score and line counts are the same multiple entries may be new
 				records.add(rec);
 			}
 			
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-			System.exit(-21311);
 		} catch (IOException e1) {
 			e1.printStackTrace();
-			System.exit(-21312);
 		} finally {
 			if (scoresScanner != null)
 				scoresScanner.close();
 		}
-		
-		Collections.sort(records);
+
+		_records = records; //save cached version
 		return records;
 	}
 	
+	/**
+	 * Saves the record to file based on the type.
+	 * @param record
+	 * @param gameType
+	 */
 	public static void saveRecord(Record record, String gameType) {
 		lastRecord = record;
-		
+		_records.add(record);
+
 		File saveFile = getFile(gameType);
 		PrintWriter out = null;
 		try {

@@ -85,7 +85,7 @@ public class Main extends SimpleApplication {
 			playState = null;
 			
 			//save score
-			RecordManager.saveRecord(r, "A");
+			RecordManager.saveRecord(r, RecordManager.TYPE_A);
 			
 			menuState = new MenuState(this);
 			getStateManager().attach(menuState);
