@@ -6,9 +6,11 @@ import java.util.List;
 
 public class TetrisGame implements Tetris {
 	
-	private static final float LOCK_DELAY = 0.5f; //feels weird, like it should get less per level
+	//TODO reverse y axis so 0 is at the bottom
 	//note this for later: https://tetris.fandom.com/wiki/Infinity
-	//whats funny is it mentions 'O' being able to rotate forever as well 
+	//whats funny is it mentions 'O' being able to rotate forever as well
+	
+	private static final float LOCK_DELAY = 0.5f; //feels weird, like it should get less per level
 	
 	//keep hidden due to GRAVITY_DOWN (that should not be public)
 	private enum InputAction {
@@ -297,6 +299,21 @@ public class TetrisGame implements Tetris {
 		this.score += this.softCount; //pressed down quite a few times
 		this.softCount = 0; //but it has to be zero for the next one
 
+		
+		//TopOut rules: check if the cells are all above row 20 (21 or 22) then end the game
+		boolean above = true;
+		for (Cell c: this.curShape.getCells()) {
+			if (c.getY() > 0) {
+				above = false;
+			}
+		}
+		if (above) {
+			this.ended = true;
+			triggerEvent(EventType.GameOver);
+			return;
+		}
+		
+		
 		//check for new lines
 		updateFlashRows();
 		if (newLine()) {
@@ -338,8 +355,10 @@ public class TetrisGame implements Tetris {
 		}
 		this.nextShapes[this.nextShapes.length - 1] = shapeGenerator.next();
 		
+		//check if the next piece can spawn
 		for (Cell c: this.curShape.getCells()) {
 			if (isCellFilled(c.getX(), c.getY())) {
+				triggerEvent(EventType.GameOver);
 				this.ended = true;
 				return;
 			}
