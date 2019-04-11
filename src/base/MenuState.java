@@ -139,6 +139,11 @@ public class MenuState extends BaseAppState {
 		cb.setChecked(settings.useSoundEffects());
 		cb.addClickCommands((chk -> saveSettings()));
 		checkboxes.put(SettingsManager.Key.SoundEffects, cb);
+		
+		cb = c.addChild(new Checkbox(SettingsManager.Key.HoldPiece.name()));
+		cb.setChecked(settings.useHoldPiece());
+		cb.addClickCommands((chk -> saveSettings()));
+		checkboxes.put(SettingsManager.Key.HoldPiece, cb);
 
 		return c;
 	}
