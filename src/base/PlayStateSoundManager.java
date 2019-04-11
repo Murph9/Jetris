@@ -32,10 +32,9 @@ public class PlayStateSoundManager extends BaseAppState {
 		engine.addEventListener(soundy);
 		
 		//add looping background sound
-		backgroundMusic = new AudioNode(app.getAssetManager(), "assets/sounds/jetris_theme-02.wav", DataType.Stream);
+		backgroundMusic = new AudioNode(app.getAssetManager(), "assets/sounds/jetris_theme-03.wav", DataType.Stream);
 		backgroundMusic.setLooping(true);
 		backgroundMusic.setPositional(false);
-		backgroundMusic.setVolume(3); //TODO does this not make it louder?
 		rootNode.attachChild(backgroundMusic);
 	}
 
@@ -44,6 +43,7 @@ public class PlayStateSoundManager extends BaseAppState {
 		((Main)app).getRootNode().detachChild(rootNode);
 		engine.removeEventListener(soundy);
 		
+		backgroundMusic.stop();
 		rootNode.detachChild(backgroundMusic);
 	}
 
@@ -121,7 +121,7 @@ public class PlayStateSoundManager extends BaseAppState {
 		
 		@Override
 		public void onLineCombo(int count) {
-			
+			//no idea yet
 		}
 
 		@Override
