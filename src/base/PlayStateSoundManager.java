@@ -123,6 +123,11 @@ public class PlayStateSoundManager extends BaseAppState {
 		public void onLineCombo(int count) {
 			//no idea yet
 		}
+		
+		@Override
+		public void onTSpin(int count) {
+			//no idea yet
+		}
 
 		@Override
 		public void onGameOver() {

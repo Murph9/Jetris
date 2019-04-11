@@ -4,6 +4,8 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import logic.Shape.Type;
+
 public class TetrisGame implements Tetris {
 	
 	//TODO reverse y axis so 0 is at the bottom
@@ -42,7 +44,9 @@ public class TetrisGame implements Tetris {
 	private float dropTimer; //in sec
 	private float lockTimer; //in sec
 	private boolean pieceHeld; //to set if hold was pressed, to prevent pressing it again
+	
 	private int lineCombo; //for scoring, 1 per combo
+	private InputAction lastSuccessfulMoveType; //for recording the last move
 	
 	private final LinkedList<Integer> flashRows;
 	/**
@@ -258,6 +262,7 @@ public class TetrisGame implements Tetris {
 			return;
 		}
 		
+		lastSuccessfulMoveType = action;
 		triggerEvent(EventType.Movement);
 		
 		//valid move, so update curShape
@@ -287,6 +292,27 @@ public class TetrisGame implements Tetris {
 		
 		//stop the drop timer from working
 		this.dropTimer = Float.MAX_VALUE;
+		
+		//detect t-spins: 3-corner T mode
+		//https://tetris.fandom.com/wiki/T-Spin
+		//TODO more complex T-spin mini rules from the link
+		boolean tSpin = false;
+		if (this.curShape.type == Type.T && lastSuccessfulMoveType == InputAction.ROTATE_LEFT || lastSuccessfulMoveType == InputAction.ROTATE_RIGHT) {
+			//check 3 of 4 corners are filled
+			int x = (int)this.curShape.xCentre; //T's center is a whole number
+			int y = (int)this.curShape.yCentre;
+			int count = 0;
+			if (isCellFilled(x - 1, y - 1))
+				count++;
+			if (isCellFilled(x + 1, y - 1))
+				count++;
+			if (isCellFilled(x - 1, y + 1))
+				count++;
+			if (isCellFilled(x + 1, y + 1))
+				count++;
+			
+			tSpin = count >= 3; //TODO test
+		}
 
 		for (Cell c: this.curShape.getCells()) { 
 			//add the cells to the grid
@@ -317,8 +343,14 @@ public class TetrisGame implements Tetris {
 		//check for new lines
 		updateFlashRows();
 		if (newLine()) {
-			triggerEvent(EventType.NewLine, getLines().size());
+			updateByLines(flashRows.size(), tSpin);
 			return;
+		}
+
+		if (tSpin) { //TSpin with no lines
+			triggerEvent(EventType.TSpin, 0);
+			this.score += 400*level; //not great that this is out here
+			updateLevel();
 		}
 		
 		this.lineCombo = 0;
@@ -330,8 +362,6 @@ public class TetrisGame implements Tetris {
 	 * Trigger this method when the ui code is done with showing the line.
 	 */
 	public void triggerLineEnd() {
-		updateByLines(flashRows.size());
-		
 		for (Integer i: flashRows)
 			removeRow(i);
 		
@@ -403,35 +433,44 @@ public class TetrisGame implements Tetris {
 		}
 	}
 	
-	private void updateByLines(int lines) {
+	private void updateByLines(int lines, boolean tSpin) {
 		this.lines += lines;
 
-		//http://tetris.wikia.com/wiki/Scoring#Guideline_scoring_system
+		if (tSpin)
+			triggerEvent(EventType.TSpin, lines);
+		else
+			triggerEvent(EventType.Line, lines);
+		triggerEvent(EventType.LineCombo, lineCombo);
 		
+		//http://tetris.wikia.com/wiki/Scoring#Guideline_scoring_system
 		this.lineCombo++;
 		this.score += 50*lineCombo*level;
-		
-		triggerEvent(EventType.LineCombo, lineCombo);
 
-		switch (lines) {
-		case 1: //single
-			this.score += 100*this.level;
-			this.levelPoints += 1;
-			break;
-		case 2: //double
-			this.score += 100*this.level;
-			this.levelPoints += 3;
-			break;
-		case 3: //triple
-			this.score += 500*this.level;
-			this.levelPoints += 5;
-			break;
-		case 4: //tetris
+		if (tSpin && lines == 3) { //T-Spin Triple
+			this.score += 1600*this.level;
+			this.levelPoints += 16;
+		} else if (tSpin && lines == 2) { //T-Spin Double
+			this.score += 1200*this.level;
+			this.levelPoints += 16;
+		} else if (lines == 4 || (tSpin && lines == 1)) { //tetris or T-Spin Single
 			this.score += 800*this.level;
 			this.levelPoints += 8;
-			break;
+		} else if (lines == 3) { //triple
+			this.score += 500*this.level;
+			this.levelPoints += 5;
+		} else if (lines == 2) { //double
+			this.score += 300*this.level;
+			this.levelPoints += 3;
+		} else if (lines == 1) { //single
+			this.score += 100*this.level;
+			this.levelPoints += 1;
 		}
+		//TODO B2B scoring
 		
+		updateLevel();
+	}
+	
+	private void updateLevel() {
 		//update level based on levelPoints
 		while (this.levelPoints > this.level*5) {
 			this.levelPoints -= this.level*5;
@@ -517,8 +556,9 @@ public class TetrisGame implements Tetris {
 	}
 	
 	enum EventType {
-		NewLine,
+		Line,
 		LineCombo,
+		TSpin,
 		GameOver,
 		
 		Rotation,
@@ -533,11 +573,14 @@ public class TetrisGame implements Tetris {
 	private void triggerEvent(EventType st, int int1) {
 		for (TetrisEventListener ls: this.listeners) {
 			switch(st) {
-			case NewLine:
+			case Line:
 				ls.onNewLine(int1);
 				break;
 			case LineCombo:
 				ls.onLineCombo(int1);
+				break;
+			case TSpin:
+				ls.onTSpin(int1);
 				break;
 			case GameOver:
 				ls.onGameOver();

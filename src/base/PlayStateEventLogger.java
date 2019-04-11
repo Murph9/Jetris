@@ -14,12 +14,14 @@ public class PlayStateEventLogger implements TetrisEventListener {
 	
 	@Override
 	public void onNewLine(int count) {
-		if (count < 2)
-			this.func.accept(count + " line");
-		else if (count == 4)
+		if (count == 1)
+			this.func.accept("Single");
+		if (count == 2)
+			this.func.accept("Double");
+		if (count == 3)
+			this.func.accept("Triple");
+		if (count == 4)
 			this.func.accept("Tetris");
-		else
-			this.func.accept(count + " lines");
 	}
 	
 	@Override
@@ -56,5 +58,17 @@ public class PlayStateEventLogger implements TetrisEventListener {
 	@Override
 	public void onLock() {
 		
+	}
+	
+	@Override
+	public void onTSpin(int count) {
+		if (count == 0)
+			this.func.accept("TSpin");
+		if (count == 1)
+			this.func.accept("TSpin Single!");
+		if (count == 2)
+			this.func.accept("TSpin Double!!");
+		if (count == 3)
+			this.func.accept("TSpin Triple!!!");
 	}
 }
