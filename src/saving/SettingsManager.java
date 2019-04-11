@@ -24,7 +24,8 @@ public class SettingsManager {
         HardDropLock("hardDropLock"),
         GreyScale("greyScale"),
         ExpertMode("expertMode"),
-		SoundEffects("SoundEffects");
+		SoundEffects("SoundEffects"),
+		HoldPiece("HoldPiece");
 
         private final String key;
         private final Class<?> type;

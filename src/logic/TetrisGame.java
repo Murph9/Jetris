@@ -58,7 +58,9 @@ public class TetrisGame implements Tetris {
 	private List<TetrisEventListener> listeners;
 	
 	public TetrisGame(int width, int height, int nextShapes, LogicSettings settings) {
-		this.settings = settings; //TODO null check
+		
+		this.settings = settings != null ? settings : new LogicSettings();
+		
 		this.width = width;
 		this.height = height;
 		this.flashRows = new LinkedList<Integer>();
@@ -191,6 +193,9 @@ public class TetrisGame implements Tetris {
 				return;
 			}
 		case HOLD:
+			if (!settings.useHoldPiece)
+				break; //no hold piece action allowed
+			
 			this.softCount = 0;
 			if (pieceHeld)
 				return;
@@ -244,7 +249,8 @@ public class TetrisGame implements Tetris {
 				//a down move failed, trigger lock delay
 				this.lockTimer = LOCK_DELAY;
 				triggerEvent(EventType.StartLockDelay);
-			} else {
+			} else if (action != InputAction.GRAVITY_DOWN) {
+				//this shouldn't play on gravity down because either it locks or triggers the lock_delay
 				triggerEvent(EventType.NotMove);
 			}
 			return;

@@ -11,6 +11,8 @@ public interface ISettings {
     boolean hardDropLock();
     /** No field colors, only grey. */
     boolean greyScale();
-    /** If sound effects enabled*/
+    /** If sound effects enabled */
     boolean useSoundEffects();
+    /** If you are allowed to hold */
+    boolean useHoldPiece();
 }

@@ -100,6 +100,7 @@ public class PlayState extends BaseAppState {
 		LogicSettings gameSettings = new LogicSettings();
 		gameSettings.hardDropLock = settings.hardDropLock();
 		gameSettings.invisibleLockedCells = settings.expertMode();
+		gameSettings.useHoldPiece = settings.useHoldPiece();
 		this.engine = new TetrisGame(X_SIZE, Y_SIZE, NEXT_SHAPE_COUNT, gameSettings);
 		
 		this.rootNode = new Node("game node");

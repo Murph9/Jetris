@@ -27,6 +27,8 @@ public class Settings implements ISettings {
         	this.settings.put(Key.RandomColours, false);
         if (!this.settings.containsKey(Key.SoundEffects))
         	this.settings.put(Key.SoundEffects, true);
+        if (!this.settings.containsKey(Key.HoldPiece))
+        	this.settings.put(Key.HoldPiece, true);
     }
 
     private boolean getBool(SettingsManager.Key key) {
@@ -48,9 +50,9 @@ public class Settings implements ISettings {
     public boolean hardDropLock() { return getBool(Key.HardDropLock); }
     public boolean greyScale() { return getBool(Key.GreyScale); }
     public boolean useSoundEffects() { return getBool(Key.SoundEffects); }
+    public boolean useHoldPiece() { return getBool(Key.HoldPiece); }
 
     //TODO other things:
     //- random generator bag size, or toggle
-    //- hold piece
     //- background stars
 }
