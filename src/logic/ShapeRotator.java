@@ -84,8 +84,9 @@ public class ShapeRotator {
 	}
 	
 	/////REGION of kick constants
-	//TODO the first one is always 0,0
-	//TODO a_b == b_a * -1
+	//Perf improvements:
+	// - the first one is always 0,0
+	// - a_b == b_a * -1
 	private static final List<Kick> kick0_R = Arrays.asList(
 			new Kick(0,0), new Kick(-1,0), new Kick(-1,1), new Kick(0,-2), new Kick(-1,-2)
 		);

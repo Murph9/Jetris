@@ -72,7 +72,8 @@ public class MenuState extends BaseAppState {
 		mainWindow.addChild(myWindow, Position.Center);
 		
 		float width = CellHelper.fieldWidth(sa.getCamera().getHeight(), PlayState.X_SIZE/2, (PlayState.Y_SIZE-PlayState.Y_HIDDEN)/2)/2f;
-		mainWindow.setPreferredSize(new Vector3f(sa.getCamera().getWidth()/2 - width, sa.getCamera().getHeight(), 0));
+		myWindow.setPreferredSize(new Vector3f(sa.getCamera().getWidth()/2 - width, sa.getCamera().getHeight()-31, 0));
+		//TODO i don't want to set the preferred height
 	}
 
 	private Panel generateLeaderboardTab() {
