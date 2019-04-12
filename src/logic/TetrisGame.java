@@ -12,6 +12,8 @@ public class TetrisGame implements Tetris {
 	//note this for later: https://tetris.fandom.com/wiki/Infinity
 	//whats funny is it mentions 'O' being able to rotate forever as well
 	
+	//TODO bug: hold soft drop and once piece hits the ground press hard drop, then game over
+	
 	private static final float LOCK_DELAY = 0.5f; //feels weird, like it should get less per level
 	
 	//keep hidden due to GRAVITY_DOWN (that should not be public)
@@ -27,9 +29,7 @@ public class TetrisGame implements Tetris {
 	private Shape ghostShape;
 	private Shape holdShape;
 	
-	private final int width;
-	private final int height;
-	private final Cell[][] cells;
+	private CellGrid field;
 	
 	private int level;
 	private int levelPoints;
@@ -67,22 +67,13 @@ public class TetrisGame implements Tetris {
 		
 		this.settings = settings != null ? settings : new LogicSettings();
 		
-		this.width = width;
-		this.height = height;
+		this.field = new CellGrid(width, height);
 		this.flashRows = new LinkedList<Integer>();
 		this.lineModeActionBuffer = new LinkedList<>();
 		this.shapeGenerator = new Generator(Shape.Type.values());
 		this.nextShapes = new Shape[nextShapes];
 		
 		this.level = 1;
-		
-		this.cells = new Cell[this.height][this.width];
-		
-		for (int y = 0; y < this.height; y++) {
-			for (int x = 0; x < this.width; x++) {
-				this.cells[y][x] = new Cell(x, y);
-			}
-		}
 		
 		this.listeners = new LinkedList<TetrisEventListener>();
 	}
@@ -112,7 +103,7 @@ public class TetrisGame implements Tetris {
 			return; //no more game updates now :(
 		
 		if (newLine())
-			return; //do not do anything until the view layer says its done 
+			return; //do not do anything until the view layer says its done
 		
 		this.dropTimer -= tpf;
 		if (dropTimer <= 0) {
@@ -157,7 +148,7 @@ public class TetrisGame implements Tetris {
 	
 	private void updateGhostShape() {
 		this.ghostShape = this.curShape.clone();
-		this.ghostShape.translate(0, minDrop() - 1);
+		this.ghostShape.translate(0, field.minDrop(curShape) - 1);
 	}
 	
 	public void hold() { movePiece(InputAction.HOLD); }
@@ -190,7 +181,7 @@ public class TetrisGame implements Tetris {
 		switch (action) {
 		case HARD_DOWN:
 			//hard down is special, if always works and always causes the block to lock
-			this.softCount = minDrop() - 1;
+			this.softCount = field.minDrop(curShape) - 1;
 			newState.translate(0, this.softCount);
 			this.softCount *= 2; //hard drop gets double points
 			this.curShape = newState;
@@ -238,19 +229,19 @@ public class TetrisGame implements Tetris {
 			break;
 		case ROTATE_LEFT:
 			newState = ShapeRotator.rotate(newState, true, (s) -> {
-				return isValidMove(s);
+				return field.isValidPos(s);
 			});
 			this.softCount = 0;
 			break;
 		case ROTATE_RIGHT:
 			newState = ShapeRotator.rotate(newState, false, (s) -> {
-				return isValidMove(s);
+				return field.isValidPos(s);
 			});
 			this.softCount = 0;
 			break;
 		}
 		
-		if (!isValidMove(newState)) {
+		if (!field.isValidPos(newState)) {
 			if (this.lockTimer == 0 && (action == InputAction.SOFT_DOWN || action == InputAction.GRAVITY_DOWN || action == InputAction.HARD_DOWN)) {
 				//a down move failed, trigger lock delay
 				this.lockTimer = LOCK_DELAY;
@@ -271,17 +262,11 @@ public class TetrisGame implements Tetris {
 		this.lockTimer = 0; //any valid move resets the lock timer
 	}
 	
-	private boolean isValidMove(Shape nextState) {
-		for (Cell c: nextState.getCells()) {
-			if (c.getX() >= width || c.getX() < 0) 
-				return false;
-			if (c.getY() >= height)
-				return false;
-			
-			if (isCellFilled(c.getX(), c.getY()))
-				return false;
-		}
-		return true;
+	public Cell getCell(int x, int y) {
+		return field.getCell(x, y);
+	}
+	public int minDrop() {
+		return field.minDrop(curShape);
 	}
 	
 	private void blockHit() {
@@ -302,13 +287,13 @@ public class TetrisGame implements Tetris {
 			int x = (int)this.curShape.xCentre; //T's center is a whole number
 			int y = (int)this.curShape.yCentre;
 			int count = 0;
-			if (isCellFilled(x - 1, y - 1))
+			if (field.isCellFilled(x - 1, y - 1))
 				count++;
-			if (isCellFilled(x + 1, y - 1))
+			if (field.isCellFilled(x + 1, y - 1))
 				count++;
-			if (isCellFilled(x - 1, y + 1))
+			if (field.isCellFilled(x - 1, y + 1))
 				count++;
-			if (isCellFilled(x + 1, y + 1))
+			if (field.isCellFilled(x + 1, y + 1))
 				count++;
 			
 			tSpin = count >= 3; //TODO test
@@ -319,7 +304,7 @@ public class TetrisGame implements Tetris {
 			CellColour c2 = c.getColour();
 			if (settings.invisibleLockedCells)
 				c2 = null;
-			fillCell(c.getX(), c.getY(), c2);
+			field.fillCell(c.getX(), c.getY(), c2);
 		}
 
 		this.score += this.softCount; //pressed down quite a few times
@@ -363,7 +348,7 @@ public class TetrisGame implements Tetris {
 	 */
 	public void triggerLineEnd() {
 		for (Integer i: flashRows)
-			removeRow(i);
+			field.removeRow(i);
 		
 		this.flashRows.clear();
 
@@ -387,7 +372,7 @@ public class TetrisGame implements Tetris {
 		
 		//check if the next piece can spawn
 		for (Cell c: this.curShape.getCells()) {
-			if (isCellFilled(c.getX(), c.getY())) {
+			if (field.isCellFilled(c.getX(), c.getY())) {
 				triggerEvent(EventType.GameOver);
 				this.ended = true;
 				return;
@@ -398,52 +383,27 @@ public class TetrisGame implements Tetris {
 		resetDropTimer();
 	}
 	
-	private void fillCell(int x, int y, CellColour colour) {
-		if (x < 0 || y < 0)
-			return;
-		cells[y][x].fill(colour);
-	}
-	
-	private boolean isCellFilled(int x, int y) {
-		if (x < 0 || x >= width) return false;
-		if (y < 0 || y >= height) return false;
-		return cells[y][x].getFilled();
-	}
-	
-	public Cell getCell(int x, int y) {
-		if (x < 0 || x >= width) return null;
-		if (y < 0 || y >= height) return null;
-		
-		return cells[y][x];
-	}
-	
 	private void updateFlashRows() {
+		//fill flaskrows and check for new lines
 		flashRows.clear();
-		for (int y = 0; y < this.height; y++) {
-			boolean full = true;
-			for (int x = 0; x < this.width; x++) {
-				if (!cells[y][x].getFilled()) {
-					full = false;
-					break;
-				}
-			}
-			if (full == true) {
-				flashRows.add(y);
-			}
+		for (Integer i: field.getFullRows()) {
+			flashRows.add(i);
 		}
 	}
 	
 	private void updateByLines(int lines, boolean tSpin) {
 		this.lines += lines;
-
+		this.lineCombo++;
+		
 		if (tSpin)
 			triggerEvent(EventType.TSpin, lines);
 		else
 			triggerEvent(EventType.Line, lines);
-		triggerEvent(EventType.LineCombo, lineCombo);
 		
+		triggerEvent(EventType.LineCombo, lineCombo);
+
 		//http://tetris.wikia.com/wiki/Scoring#Guideline_scoring_system
-		this.lineCombo++;
+		
 		this.score += 50*lineCombo*level;
 
 		if (tSpin && lines == 3) { //T-Spin Triple
@@ -479,54 +439,16 @@ public class TetrisGame implements Tetris {
 		
 		this.level = Math.min(this.level, 20); //prevent a higher level than 20
 	}
-	
-	//assumes the row given is valid
-	private void removeRow(int row) {
-		for (int i = 0; i < this.width; i++) {
-			cells[row][i].clear();
-		}
-		for (int y = row-1; y >= 0; y--) { //need to go up for this one
-			for (int x = 0; x < this.width; x++) {
-				if (cells[y][x].getFilled()) {
-					cells[y+1][x].fill(cells[y][x].getColour());
-					cells[y][x].clear();
-				}
-			}
-		}
-	}
-	
-	public int minDrop() {
-		if (curShape == null) 
-			return -1;
 		
-		int length = Integer.MAX_VALUE;
-		for (Cell c : curShape.getCells()) {
-			int temp = 0;
-			for (int i = c.getY(); i < height; i++) {
-				if (this.isCellFilled(c.getX(), i)) {
-					length = Math.min(length, temp);
-						//we want the smallest distance for a drop
-					break;
-				}
-				temp++;
-			}
-			length = Math.min(length, temp);
-		}
-		return length;
-	}
-	
 	@Override
 	public String toString() {
 		return "Tetris: " + this.score + " " + this.lines + " " + this.curShape.type;
 	}
 
 	public TetrisGame cloneForAI() {
-		TetrisGame tg = new TetrisGame(this.width, this.height, this.nextShapes.length, this.settings);
+		TetrisGame tg = new TetrisGame(field.getWidth(), field.getHeight(), this.nextShapes.length, this.settings);
 		
-		//clone cell grid
-		for (int i = 0; i < this.cells.length; i++)
-			for (int j = 0; j < this.cells[i].length; j++)
-				tg.cells[i][j] = this.cells[i][j].clone();
+		tg.field = this.field.cloneForAI();
 		
 		//clone next/cur/hold shapes
 		if (this.curShape != null)
