@@ -1,5 +1,6 @@
 package logic;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -29,7 +30,7 @@ public class CellGrid {
 		for (Cell c: nextState.getCells()) {
 			if (c.getX() >= width || c.getX() < 0) 
 				return false;
-			if (c.getY() >= height)
+			if (c.getY() < 0)
 				return false;
 			
 			if (isCellFilled(c.getX(), c.getY()))
@@ -57,17 +58,23 @@ public class CellGrid {
 		return cells[y][x];
 	}
 	
-	//assumes the row given is valid
-	public void removeRow(int row) {
-		for (int i = 0; i < this.width; i++) {
-			cells[row][i].clear();
+	public void removeRows(List<Integer> rows) {
+		Collections.sort(rows, Collections.reverseOrder()); //must start with the top row, and go down
+		
+		for (Integer i: rows)
+			removeRow(i);
+	}
+	private void removeRow(int row) {
+		//assumes the row given is valid (doesn't validate the filled row)
+		for (int x = 0; x < this.width; x++) {
+			cells[row][x].clear();
 		}
-		for (int y = row-1; y >= 0; y--) { //need to go up for this one
+		
+		//start at the row and move everything down
+		for (int y = row+1; y < this.height; y++) {
 			for (int x = 0; x < this.width; x++) {
-				if (cells[y][x].getFilled()) {
-					cells[y+1][x].fill(cells[y][x].getColour());
-					cells[y][x].clear();
-				}
+				cells[y-1][x].fill(cells[y][x].getColour());
+				cells[y][x].clear();
 			}
 		}
 	}
@@ -79,7 +86,7 @@ public class CellGrid {
 		int length = Integer.MAX_VALUE;
 		for (Cell c : shape.getCells()) {
 			int temp = 0;
-			for (int i = c.getY(); i < height; i++) {
+			for (int i = c.getY(); i >= 0; i--) {
 				if (isCellFilled(c.getX(), i)) {
 					length = Math.min(length, temp); //we want the smallest distance for a drop
 					break;

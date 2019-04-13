@@ -50,9 +50,9 @@ public class AiPlayState extends PlayState {
 
 	public static int columnHeight(TetrisGame engine, int column) {
 		//find the highest cell
-		for (int i = 0; i < PlayState.Y_SIZE; i++) {
+		for (int i = PlayState.Y_SIZE - 1; i >= 0; i--) {
 			if (engine.getCell(column, i).getFilled())
-				return PlayState.Y_SIZE - i;
+				return i;
 		}
 		return 0;
 	}
@@ -70,7 +70,7 @@ public class AiPlayState extends PlayState {
 		int count = 0;
 		for (int c = 0; c < PlayState.X_SIZE; c++){
 			boolean block = false;
-			for (int r = 0; r < PlayState.Y_SIZE; r++){
+			for (int r = PlayState.Y_SIZE - 1; r >= 0; r--) {
 				if (engine.getCell(c, r).getFilled()) {
 					block = true;
 				} else if (!engine.getCell(c, r).getFilled() && block) {

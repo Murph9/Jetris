@@ -11,7 +11,7 @@ public class ShapeRotator {
 	//Whole reason this class exists:
 	//https://harddrop.com/wiki/SRS#Wall_Kick_Illustration
 	//http://tetris.wikia.com/wiki/SRS
-	
+
 	enum KickType {
 		NORMAL,
 		OTHER;
@@ -23,7 +23,7 @@ public class ShapeRotator {
 		List<Kick> kicks = kickData(shape.kickType, rotState, shape.rotState);
 		for (Kick k: kicks) {
 			Shape s = shape.clone();
-			s.translate(k.x, -k.y); //my y is inverted from all guides online
+			s.translate(k.x, k.y);
 			if (isValid.apply(s)) {
 				return s;
 			}

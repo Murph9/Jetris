@@ -21,17 +21,18 @@ public class Shape {
 			this.i = i;
 		}
 		
+		/**Rotate shape by i, +ve i means right (clockwise)*/
 		public Rotation add(int i) {
 			int newInt = (this.i + i + 4) % 4;
 			switch(newInt) {
 	        case 0:
 	            return NONE;
 	        case 1:
-	            return RIGHT;
+	            return RIGHT; //clockwise
 	        case 2:
 	            return DOUBLE;
 	        case 3:
-	            return LEFT;
+	            return LEFT; //counter-clockwise
 	        }
 	        return null;
 		}
@@ -42,7 +43,7 @@ public class Shape {
 		TYPE_COLOUR = new HashMap<>();
 		TYPE_COLOUR.put(Type.I, new CellColour(0.24706f, 0.66275f, 0.81569f, 1f));
 		TYPE_COLOUR.put(Type.O, new CellColour(0.94902f, 0.77255f, 0.13333f, 1f));
-		TYPE_COLOUR.put(Type.T, new CellColour(0.79216f, 0.43137f, 0.72549f, 1f)); //"purple"
+		TYPE_COLOUR.put(Type.T, new CellColour(0.79206f, 0.43137f, 0.72549f, 1f)); //"purple"
 		TYPE_COLOUR.put(Type.S, new CellColour(0.40000f, 0.59608f, 0.24706f, 1f));
 		TYPE_COLOUR.put(Type.Z, new CellColour(0.69804f, 0.30588f, 0.27059f, 1f));
 		TYPE_COLOUR.put(Type.J, new CellColour(0.00392f, 0.31373f, 0.71765f, 1f));
@@ -54,59 +55,59 @@ public class Shape {
 		switch (t) {//I, O, T, S, Z, J, and L
 			case I:
 				Shape shape = new Shape(t, KickType.OTHER);
-				shape.addCell(new Cell(3,0)); //    
-				shape.addCell(new Cell(4,0));
-				shape.addCell(new Cell(5,0));
-				shape.addCell(new Cell(6,0));
-				shape.setCentre(4.5f, 0.5f);
+				shape.addCell(new Cell(3,20)); //    
+				shape.addCell(new Cell(4,20));
+				shape.addCell(new Cell(5,20));
+				shape.addCell(new Cell(6,20));
+				shape.setCentre(4.5f, 19.5f); //bottom middle
 				return shape;
 			case O:
 				shape = new Shape(t, KickType.OTHER); //doesn't matter what kick type and I looked lonely
-				shape.addCell(new Cell(4,0)); //  
-				shape.addCell(new Cell(5,0)); //  
-				shape.addCell(new Cell(4,1));
-				shape.addCell(new Cell(5,1));
-				shape.setCentre(4.5f, 0.5f); //technically nothing
+				shape.addCell(new Cell(4,20)); //  
+				shape.addCell(new Cell(5,20)); //  
+				shape.addCell(new Cell(4,21));
+				shape.addCell(new Cell(5,21));
+				shape.setCentre(4.5f, 20.5f); //center of the 4 cells
 				return shape;
 			case T:
 				shape = new Shape(t, KickType.NORMAL);
-				shape.addCell(new Cell(3,1)); //   
-				shape.addCell(new Cell(4,0)); //   
-				shape.addCell(new Cell(4,1));
-				shape.addCell(new Cell(5,1));
-				shape.setCentre(4, 1);
+				shape.addCell(new Cell(3,20)); //   
+				shape.addCell(new Cell(4,21)); //   
+				shape.addCell(new Cell(4,20));
+				shape.addCell(new Cell(5,20));
+				shape.setCentre(4, 20); //bottom middle
 				return shape;
 			case S:
 				shape = new Shape(t, KickType.NORMAL);
-				shape.addCell(new Cell(3,1)); //    
-				shape.addCell(new Cell(4,0)); //  
-				shape.addCell(new Cell(4,1));
-				shape.addCell(new Cell(5,0));
-				shape.setCentre(4, 1);
+				shape.addCell(new Cell(3,20)); //    
+				shape.addCell(new Cell(4,21)); //  
+				shape.addCell(new Cell(4,20));
+				shape.addCell(new Cell(5,21));
+				shape.setCentre(4, 20);
 				return shape;
 			case Z:
 				shape = new Shape(t, KickType.NORMAL);
-				shape.addCell(new Cell(5,1)); //  
-				shape.addCell(new Cell(4,0)); //    
-				shape.addCell(new Cell(4,1));
-				shape.addCell(new Cell(3,0));
-				shape.setCentre(4, 1);
+				shape.addCell(new Cell(5,20)); //  
+				shape.addCell(new Cell(4,21)); //    
+				shape.addCell(new Cell(4,20));
+				shape.addCell(new Cell(3,21));
+				shape.setCentre(4, 20);
 				return shape;
 			case J:
 				shape = new Shape(t, KickType.NORMAL);
-				shape.addCell(new Cell(3,0)); // 
-				shape.addCell(new Cell(3,1)); //   
-				shape.addCell(new Cell(4,1));
-				shape.addCell(new Cell(5,1));
-				shape.setCentre(4, 1);
+				shape.addCell(new Cell(3,21)); // 
+				shape.addCell(new Cell(3,20)); //   
+				shape.addCell(new Cell(4,20));
+				shape.addCell(new Cell(5,20));
+				shape.setCentre(4, 20);
 				return shape;
 			case L:
 				shape = new Shape(t, KickType.NORMAL);
-				shape.addCell(new Cell(3,1)); //     
-				shape.addCell(new Cell(4,1)); //   
-				shape.addCell(new Cell(5,0));
-				shape.addCell(new Cell(5,1));
-				shape.setCentre(4, 1);
+				shape.addCell(new Cell(3,20)); //     
+				shape.addCell(new Cell(4,20)); //   
+				shape.addCell(new Cell(5,21));
+				shape.addCell(new Cell(5,20));
+				shape.setCentre(4, 20);
 				return shape;
 			default:
 				return null;
@@ -165,16 +166,16 @@ public class Shape {
 			float dy = this.yCentre - c.getY();
 			
 			if (right) {
-				c.translate((int)(dx+dy), (int)(dy-dx));
-			} else {
 				c.translate((int)(dx-dy), (int)(dy+dx));
+			} else {
+				c.translate((int)(dx+dy), (int)(dy-dx));
 			}
 		}
 	}
 	
 	
 	public void addCell(Cell cell) {
-		if (shapeCells.size() > 4) { System.out.println("Too Many"); }
+		if (shapeCells.size() > 4) { System.out.println("Too many cells"); }
 		cell.fill(colour);
 		shapeCells.add(cell);
 	}
@@ -199,5 +200,8 @@ public class Shape {
 	public CellColour getColour() { return this.colour; }
 	
 	@Override
-	public String toString() { return "Colour: ["+colour+"] Cells" + shapeCells+"]"; }
+	public String toString() { 
+		return "rot:" + this.rotState + " center:(" 
+			+ this.xCentre + "," + this.yCentre + ") colour: ["+colour+"]";
+	}
 }

@@ -35,8 +35,8 @@ public class PlayState extends BaseAppState {
 	//yes its a lot but its not a large game [yet]
 	
 	public static final int X_SIZE = 10;
-	public static final int Y_SIZE = 21;
-	public static final int Y_HIDDEN = 1; //stupid tetris spec requires a half-hidden row at the top
+	public static final int Y_SIZE = 25; //by the tetris spec its meant to be 40
+	public static final int Y_HIDDEN = 5; //we want 20 on the field
 	public static final int NEXT_SHAPE_COUNT = 3;
 	
 	//http://tetris.wikia.com/wiki/Line_clear#Delay
@@ -186,7 +186,7 @@ public class PlayState extends BaseAppState {
 		}
 		
 		//Init the next piece preview (trying to write this generic so it can be used later when the logic class supports it)
-		//pieces always spawn between x[3-6] and y[0,1] so thats how big it is
+		//pieces always spawn between x[3-6] and y[20,21] so thats how big it is
 		nextCellMaps = new ArrayList<HashMap<Cell, Geometry>>(NEXT_SHAPE_COUNT);
 		for (int i = 0; i < NEXT_SHAPE_COUNT; i++) {
 			Vector3f nextCenter = new Vector3f(screenWidth - cellSpacing*5, screenHeight/2 - 2.5f*i*cellSpacing - cellSpacing, 0); //top/right side hopefully (going down)
@@ -194,7 +194,7 @@ public class PlayState extends BaseAppState {
 			HashMap<Cell, Geometry> nextShape = new HashMap<>();
 			
 			for (int k = 3; k < 7; k++) { //x[3-6]
-				for (int j = 0; j < 2; j++) { //y[0-1]
+				for (int j = 20; j < 22; j++) { //y[20-21]
 					Cell c = engine.getCell(k, j);
 					Geometry g = initQuad(app.getAssetManager(), DEFAULT_CELL_COLOR, b);
 					nextShape.put(c, g);
@@ -208,7 +208,7 @@ public class PlayState extends BaseAppState {
 		Vector3f center = new Vector3f(0, 2.5f*cellSpacing, 0); //top/right side hopefully (going up)
 		this.holdCellMap = new HashMap<>();
 		for (int k = 3; k < 7; k++) { //x[3-6]
-			for (int j = 0; j < 2; j++) { //y[0-1]
+			for (int j = 20; j < 22; j++) { //y[20-21]
 				Cell c = engine.getCell(k, j);
 				Geometry g = initQuad(app.getAssetManager(), DEFAULT_CELL_COLOR, b);
 				holdCellMap.put(c, g);
@@ -334,7 +334,7 @@ public class PlayState extends BaseAppState {
 
 			//remove the ghost block geometries during line highlight phase
 			for (Geometry g: this.ghostGeos) {
-				g.setLocalTranslation(-100, -100, 0); //off screen
+				g.setLocalTranslation(POS_OFFSCREEN);
 			}
 		}
 	}
@@ -388,14 +388,14 @@ public class PlayState extends BaseAppState {
 				if (col != null)
 					mat.setColor("Color", new ColorRGBA(col.r, col.g, col.b, col.a));
 				if (this.paused) //paused, so remove
-					mat.setColor("Color", ColorRGBA.BlackNoAlpha);
+					mat.setColor("Color", DEFAULT_CELL_COLOR);
 				g.setMaterial(mat);
 				
 				Cell c2 = engine.getCell(c.getX(), c.getY());
 				if (c2 != null) {
 					Vector3f pos = new Vector3f(cellMap.get(c2).getLocalTranslation());
 					pos.z += 1; //always on top
-					g.setLocalTranslation(pos);				
+					g.setLocalTranslation(pos);
 				} else { //outside the play area move out of view
 					g.setLocalTranslation(-10, -10, 0);
 				}
@@ -414,7 +414,7 @@ public class PlayState extends BaseAppState {
 		if (col != null)
 			mat.setColor("Color", new ColorRGBA(col.r, col.g, col.b, col.a));
 		if (this.paused) //paused, so remove
-			mat.setColor("Color", ColorRGBA.BlackNoAlpha);
+			mat.setColor("Color", DEFAULT_CELL_COLOR);
 		
 		g.setMaterial(mat);
 	}
@@ -432,14 +432,14 @@ public class PlayState extends BaseAppState {
 	
 	//calculates position based off screen center
 	private static Vector3f cellPosToView(int screenHeight, int screenWidth, int x, int y, float cellSpacing) {
-		//      8     [* = screen center]
-		//      9
-		//-2-3-4*5-6-7-
+		//      11     [** = screen center]
 		//      10
-		//      11
+		//-2-3-4**5-6-7-
+		//       9
+		//       8
 		
 		float offX = x - (X_SIZE) / 2f + 0.5f;
-		float offY = -y + (Y_SIZE + Y_HIDDEN) / 2f - 0.5f;
+		float offY = y - (Y_SIZE - Y_HIDDEN) / 2f + 0.5f;
 
 		return new Vector3f(
 			offX * cellSpacing + screenWidth / 2f,
@@ -449,12 +449,12 @@ public class PlayState extends BaseAppState {
 	}
 	//calculates position based off of 0,0 (in screen scale) and a x y offset of 4.5, 0.5
 	private static Vector3f shapeCellPosToOffset(int x, int y, float cellSpacing) {
-		//      0    [* = screen center]
-		//-2-3-4*5-6-7-
-		//      1
+		//      21    [** = screen center]
+		//-2-3-4**5-6-7-
+		//      20
 	
 		float offX = x - (4.5f) / 2f + 0.5f;
-		float offY = -y + (0.5f) / 2f + 0.5f;
+		float offY = (y-20) - (0.5f) / 2f + 0.5f;
 		return new Vector3f(
 			offX * cellSpacing,
 			offY * cellSpacing,

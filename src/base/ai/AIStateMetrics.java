@@ -106,8 +106,8 @@ public class AIStateMetrics implements AI {
 
 		this.foundMoveIndex = bestCol;
 		this.foundMoveRotation = bestRot;
-		System.out.print(engine.curShapeType() + " @ " + bestCost + "("+evaluteState(engine)+") => c" + bestCol + " r" + bestRot);
-		System.out.println(" ==== > lc" + engine.getLinesCount() + " hc" + AiPlayState.holeCount(engine) + " bi" + AiPlayState.bumpiness(engine) + " ah" + AiPlayState.aggregateHeight(engine));
+		System.out.print(engine.curShapeType() + " @ " + bestCost + "(prev:"+evaluteState(engine)+") => c" + bestCol + " r" + bestRot);
+		System.out.println(" ||| lc" + engine.getLinesCount() + " hc" + AiPlayState.holeCount(engine) + " bi" + AiPlayState.bumpiness(engine) + " ah" + AiPlayState.aggregateHeight(engine));
 
 		this.state = AiState.FoundMove;
 	}

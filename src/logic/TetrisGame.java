@@ -148,7 +148,7 @@ public class TetrisGame implements Tetris {
 	
 	private void updateGhostShape() {
 		this.ghostShape = this.curShape.clone();
-		this.ghostShape.translate(0, field.minDrop(curShape) - 1);
+		this.ghostShape.translate(0, -field.minDrop(curShape) + 1);
 	}
 	
 	public void hold() { movePiece(InputAction.HOLD); }
@@ -182,7 +182,7 @@ public class TetrisGame implements Tetris {
 		case HARD_DOWN:
 			//hard down is special, if always works and always causes the block to lock
 			this.softCount = field.minDrop(curShape) - 1;
-			newState.translate(0, this.softCount);
+			newState.translate(0, -this.softCount);
 			this.softCount *= 2; //hard drop gets double points
 			this.curShape = newState;
 			if (settings.hardDropLock) { //TODO basically forfeits any softlock points 
@@ -211,12 +211,12 @@ public class TetrisGame implements Tetris {
 			updateGhostShape();
 			return;
 		case SOFT_DOWN:
-			newState.translate(0, 1);
+			newState.translate(0, -1);
 			this.softCount++;
 			resetDropTimer(); //reset gravity timer
 			break;
 		case GRAVITY_DOWN:
-			newState.translate(0, 1);
+			newState.translate(0, -1);
 			this.softCount = 0;
 			break;
 		case MOVE_LEFT:
@@ -228,13 +228,13 @@ public class TetrisGame implements Tetris {
 			this.softCount = 0;
 			break;
 		case ROTATE_LEFT:
-			newState = ShapeRotator.rotate(newState, true, (s) -> {
+			newState = ShapeRotator.rotate(newState, false, (s) -> {
 				return field.isValidPos(s);
 			});
 			this.softCount = 0;
 			break;
 		case ROTATE_RIGHT:
-			newState = ShapeRotator.rotate(newState, false, (s) -> {
+			newState = ShapeRotator.rotate(newState, true, (s) -> {
 				return field.isValidPos(s);
 			});
 			this.softCount = 0;
@@ -282,7 +282,7 @@ public class TetrisGame implements Tetris {
 		//https://tetris.fandom.com/wiki/T-Spin
 		//TODO more complex T-spin mini rules from the link
 		boolean tSpin = false;
-		if (this.curShape.type == Type.T && lastSuccessfulMoveType == InputAction.ROTATE_LEFT || lastSuccessfulMoveType == InputAction.ROTATE_RIGHT) {
+		if (this.curShape.type == Type.T && (lastSuccessfulMoveType == InputAction.ROTATE_LEFT || lastSuccessfulMoveType == InputAction.ROTATE_RIGHT)) {
 			//check 3 of 4 corners are filled
 			int x = (int)this.curShape.xCentre; //T's center is a whole number
 			int y = (int)this.curShape.yCentre;
@@ -296,7 +296,7 @@ public class TetrisGame implements Tetris {
 			if (field.isCellFilled(x + 1, y + 1))
 				count++;
 			
-			tSpin = count >= 3; //TODO test
+			tSpin = count >= 3;
 		}
 
 		for (Cell c: this.curShape.getCells()) { 
@@ -314,7 +314,7 @@ public class TetrisGame implements Tetris {
 		//TopOut rules: check if the cells are all above row 20 (21 or 22) then end the game
 		boolean above = true;
 		for (Cell c: this.curShape.getCells()) {
-			if (c.getY() > 0) {
+			if (c.getY() < 21) {
 				above = false;
 			}
 		}
@@ -347,9 +347,7 @@ public class TetrisGame implements Tetris {
 	 * Trigger this method when the ui code is done with showing the line.
 	 */
 	public void triggerLineEnd() {
-		for (Integer i: flashRows)
-			field.removeRow(i);
-		
+		field.removeRows(flashRows);
 		this.flashRows.clear();
 
 		spawnNextBlock();
@@ -384,7 +382,7 @@ public class TetrisGame implements Tetris {
 	}
 	
 	private void updateFlashRows() {
-		//fill flaskrows and check for new lines
+		//fill flash rows and check for new lines
 		flashRows.clear();
 		for (Integer i: field.getFullRows()) {
 			flashRows.add(i);
