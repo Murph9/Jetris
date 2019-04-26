@@ -10,14 +10,17 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
+import com.simsilica.lemur.Axis;
 import com.simsilica.lemur.Button;
 import com.simsilica.lemur.Checkbox;
 import com.simsilica.lemur.Command;
 import com.simsilica.lemur.Container;
+import com.simsilica.lemur.FillMode;
 import com.simsilica.lemur.Label;
 import com.simsilica.lemur.Panel;
 import com.simsilica.lemur.TabbedPanel;
 import com.simsilica.lemur.component.BorderLayout;
+import com.simsilica.lemur.component.SpringGridLayout;
 import com.simsilica.lemur.component.BorderLayout.Position;
 
 import saving.ISettings;
@@ -62,8 +65,16 @@ public class MenuState extends BaseAppState {
             public void execute( Button source ) {
             	triggerSomething();
             }
-        });
-		
+		});
+		Button quit = buttonWindow.addChild(new Button("Quit"));
+		quit.addClickCommands(new Command<Button>() {
+            @Override
+            public void execute( Button source ) {
+				//then close 0=success
+            	System.exit(0);
+            }
+		});
+
 		TabbedPanel myWindow = new TabbedPanel();
 		myWindow.addTab("Leaderboard", generateLeaderboardTab());
 		myWindow.addTab("Info", generateInfoTab());
@@ -77,7 +88,7 @@ public class MenuState extends BaseAppState {
 	}
 
 	private Panel generateLeaderboardTab() {
-		Container myWindow = new Container();
+		Container myWindow = new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even));
 		myWindow.addChild(new Label("Leaderboard:"), 0, 0);
 		
 		myWindow.addChild(new Label("Score"), 1, 0);
@@ -90,6 +101,7 @@ public class MenuState extends BaseAppState {
 			myWindow.addChild(new Label(r.getScore() + (r.isNew() ? "*" : "")), 2 + i, 0);
 			myWindow.addChild(new Label(r.getLineCount() + ""), 2 + i, 1);
 		}
+
 		return myWindow;
 	}
 	private Panel generateInfoTab() {
@@ -106,7 +118,7 @@ public class MenuState extends BaseAppState {
 	@SuppressWarnings("unchecked")
 	private Panel generateSettingsTab() {
 		ISettings settings = SettingsManager.load();
-		Container c = new Container();
+		Container c = new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Even));
 		
 		checkboxes = new HashMap<>();
 		
@@ -145,6 +157,11 @@ public class MenuState extends BaseAppState {
 		cb.addClickCommands((chk -> saveSettings()));
 		checkboxes.put(SettingsManager.Key.HoldPiece, cb);
 
+		cb = c.addChild(new Checkbox(SettingsManager.Key.Background.name()));
+		cb.setChecked(settings.background());
+		cb.addClickCommands((chk -> saveSettings()));
+		checkboxes.put(SettingsManager.Key.Background, cb);
+
 		return c;
 	}
 	
@@ -159,6 +176,7 @@ public class MenuState extends BaseAppState {
 		}
 		
 		SettingsManager.save(settings);
+		main.setBackground(SettingsManager.load().background());
 	}
 	
 	@Override
