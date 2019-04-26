@@ -8,6 +8,7 @@ import com.simsilica.lemur.event.MouseAppState;
 
 import saving.Record;
 import saving.RecordManager;
+import saving.SettingsManager;
 
 
 public class Main extends SimpleApplication {
@@ -49,9 +50,11 @@ public class Main extends SimpleApplication {
 		getCamera().lookAt(new Vector3f(1,0,0), Vector3f.UNIT_Y);
 		getViewPort().setBackgroundColor(ColorRGBA.Black);
 		
-		//spaceState init
+		//background graphics init
 		spaceState = new BackgroundState(100);
-		getStateManager().attach(spaceState);
+		if (SettingsManager.load().background()) {
+			getStateManager().attach(spaceState);
+		}
 
 		//start game
 		menuState = new MenuState(this);
@@ -93,5 +96,13 @@ public class Main extends SimpleApplication {
 			aiPlayState = new AiPlayState(this);
 			getStateManager().attach(aiPlayState);
 		}
+	}
+
+	public void setBackground(boolean enabled) {
+		if (stateManager.hasState(spaceState) && !enabled)
+			stateManager.detach(spaceState);
+
+		if (!stateManager.hasState(spaceState) && enabled)
+			stateManager.attach(spaceState);
 	}
 }

@@ -22,6 +22,8 @@ public class BackgroundState extends BaseAppState {
 	//http://guidohenkel.com/2018/05/endless_starfield_unity/
 	//TODO particles are in front of everything, probably because this is added to GUI node first
 
+	private static final int Z_DEPTH = -10;
+
 	private Node rootGUINode;
 
 	private Mesh mesh;
@@ -53,22 +55,22 @@ public class BackgroundState extends BaseAppState {
 			Vector3f pos = H.randV3f(1, false);
 			pos.y *= height;
 			pos.x *= width;
-			pos.z = -1500000;
+			pos.z = Z_DEPTH;
 			particles.add(pos);
 			
 			particleParallax.add(new Float(FastMath.nextRandomFloat()*30));
 		}
 		
+		//star points mesh
 		mesh = new Mesh();
 		mesh.setMode(Mesh.Mode.Points);
 		mesh.setBuffer(Type.Position, 3, BufferUtils.createFloatBuffer(particles.toArray(new Vector3f[particles.size()])));
 		mesh.updateCounts();
 		mesh.updateBound();
 		
-		Geometry geo = new Geometry("particles", mesh); // using our custom mesh object
+		Geometry geo = new Geometry("particles", mesh);
 		Material mat = new Material(sm.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
 		mat.setColor("Color", ColorRGBA.White);
-		mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
 		geo.setMaterial(mat);
 		rootGUINode.attachChild(geo);
 
@@ -78,10 +80,10 @@ public class BackgroundState extends BaseAppState {
 
 		Mesh m = new Mesh();
 		m.setBuffer(Type.Position, 3, new float[] {
-				width/2f-xSize, 0, -10,
-				width/2f+xSize, 0, -10,
-				width/2f+xSize, height, -10,
-				width/2f-xSize, height, -10
+				width/2f-xSize, 0, Z_DEPTH,
+				width/2f+xSize, 0, Z_DEPTH,
+				width/2f+xSize, height, Z_DEPTH,
+				width/2f-xSize, height, Z_DEPTH
 	        });
 		m.setBuffer(Type.Index, 3, new short[]{0, 1, 2, 0, 2, 3});
 		m.updateBound();
@@ -97,6 +99,8 @@ public class BackgroundState extends BaseAppState {
 
 	@Override
 	public void update(float tpf) {
+		super.update(tpf);
+
 		for (int i = 0 ; i < particles.size(); i++) {
 			Vector3f v = particles.get(i);
 			v.x = (v.x + particleParallax.get(i)*tpf) % width;

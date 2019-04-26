@@ -25,7 +25,8 @@ public class SettingsManager {
         GreyScale("greyScale"),
         ExpertMode("expertMode"),
 		SoundEffects("SoundEffects"),
-		HoldPiece("HoldPiece");
+		HoldPiece("HoldPiece"),
+		Background("Background");
 
         private final String key;
         private final Class<?> type;

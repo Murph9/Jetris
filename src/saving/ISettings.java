@@ -15,4 +15,6 @@ public interface ISettings {
     boolean useSoundEffects();
     /** If you are allowed to hold */
     boolean useHoldPiece();
+    /** Show the background stars */
+    boolean background();
 }
