@@ -8,15 +8,12 @@ import logic.Shape.Type;
 
 public class TetrisGame implements Tetris {
 	
-	//TODO reverse y axis so 0 is at the bottom
 	//note this for later: https://tetris.fandom.com/wiki/Infinity
 	//whats funny is it mentions 'O' being able to rotate forever as well
 	
-	//TODO bug: hold soft drop and once piece hits the ground press hard drop, then game over
-	
 	private static final float LOCK_DELAY = 0.5f; //feels weird, like it should get less per level
 	
-	//keep hidden due to GRAVITY_DOWN (that should not be public)
+	//kept hidden due to GRAVITY_DOWN (which should not be public)
 	private enum InputAction {
 		HARD_DOWN, GRAVITY_DOWN, SOFT_DOWN, MOVE_LEFT, MOVE_RIGHT, ROTATE_LEFT, ROTATE_RIGHT, HOLD;
 	}
@@ -185,10 +182,11 @@ public class TetrisGame implements Tetris {
 			newState.translate(0, -this.softCount);
 			this.softCount *= 2; //hard drop gets double points
 			this.curShape = newState;
-			if (settings.hardDropLock) { //TODO basically forfeits any softlock points 
+			if (settings.hardDropLock) { //Note: this basically forfeits any softlock points
+				this.lockTimer = 0;
 				blockHit();
-				return;
 			}
+			return;
 		case HOLD:
 			if (!settings.useHoldPiece)
 				break; //no hold piece action allowed
@@ -211,6 +209,9 @@ public class TetrisGame implements Tetris {
 			updateGhostShape();
 			return;
 		case SOFT_DOWN:
+			if (this.lockTimer != 0) //soft lock timer prevents this action
+				return;
+
 			newState.translate(0, -1);
 			this.softCount++;
 			resetDropTimer(); //reset gravity timer
