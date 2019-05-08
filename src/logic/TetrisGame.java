@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import logic.ScoringSystem.Action;
 import logic.Shape.Type;
 
 public class TetrisGame implements Tetris {
@@ -27,22 +28,13 @@ public class TetrisGame implements Tetris {
 	private Shape holdShape;
 	
 	private CellGrid field;
-	
-	private int level;
-	private int levelPoints;
-	
-	private int score;
-	private int lines;
-	public int getScore() { return score; }
-	public int getLinesCount() { return lines; }
-	public int getLevel() { return level; }
-	
+	private ScoringSystem scorer;
+
 	private int softCount; //as in soft drop counter (technical term for pressing down lots)
 	private float dropTimer; //in sec
 	private float lockTimer; //in sec
 	private boolean pieceHeld; //to set if hold was pressed, to prevent pressing it again
 	
-	private int lineCombo; //for scoring, 1 per combo
 	private InputAction lastSuccessfulMoveType; //for recording the last move
 	
 	private final LinkedList<Integer> flashRows;
@@ -52,7 +44,10 @@ public class TetrisGame implements Tetris {
 	 */
 	public boolean newLine() { return !flashRows.isEmpty(); }
 	public List<Integer> getLines() { return new LinkedList<Integer>(flashRows); }
-	
+	public int getScore() { return (int)scorer.getScore(); }
+	public int getLinesCount() { return scorer.getLinesCount(); }
+	public int getLevel() { return scorer.getLevel(); }
+
 	private final LinkedList<InputAction> lineModeActionBuffer;
 
 	private boolean ended;
@@ -63,14 +58,13 @@ public class TetrisGame implements Tetris {
 	public TetrisGame(int width, int height, int nextShapes, LogicSettings settings) {
 		
 		this.settings = settings != null ? settings : new LogicSettings();
-		
+		this.scorer = new ScoringSystem();
+
 		this.field = new CellGrid(width, height);
 		this.flashRows = new LinkedList<Integer>();
 		this.lineModeActionBuffer = new LinkedList<>();
 		this.shapeGenerator = new Generator(Shape.Type.values());
 		this.nextShapes = new Shape[nextShapes];
-		
-		this.level = 1;
 		
 		this.listeners = new LinkedList<TetrisEventListener>();
 	}
@@ -117,7 +111,7 @@ public class TetrisGame implements Tetris {
 		}
 	}
 	private void resetDropTimer() {
-		this.dropTimer = gravityCalc(this.level);
+		this.dropTimer = gravityCalc(scorer.getLevel());
 	}
 	/** get gravity by level in seconds */
 	private static float gravityCalc(int level) {
@@ -260,7 +254,9 @@ public class TetrisGame implements Tetris {
 		//valid move, so update curShape
 		this.curShape = newState;
 		updateGhostShape();
-		this.lockTimer = 0; //any valid move resets the lock timer
+
+		//any valid move resets the lock timer
+		this.lockTimer = 0;
 	}
 	
 	public Cell getCell(int x, int y) {
@@ -279,9 +275,8 @@ public class TetrisGame implements Tetris {
 		//stop the drop timer from working
 		this.dropTimer = Float.MAX_VALUE;
 		
-		//detect t-spins: 3-corner T mode
+		//detecting t-spins: 3-corner T mode
 		//https://tetris.fandom.com/wiki/T-Spin
-		//TODO more complex T-spin mini rules from the link
 		boolean tSpin = false;
 		if (this.curShape.type == Type.T && (lastSuccessfulMoveType == InputAction.ROTATE_LEFT || lastSuccessfulMoveType == InputAction.ROTATE_RIGHT)) {
 			//check 3 of 4 corners are filled
@@ -300,7 +295,10 @@ public class TetrisGame implements Tetris {
 			tSpin = count >= 3;
 		}
 
-		for (Cell c: this.curShape.getCells()) { 
+		//TODO more complex T-spin mini rules from the link above:
+		//its a mini t-spin if the hole is on the point side, or there is a hole opposite the point
+
+		for (Cell c: this.curShape.getCells()) {
 			//add the cells to the grid
 			CellColour c2 = c.getColour();
 			if (settings.invisibleLockedCells)
@@ -308,7 +306,8 @@ public class TetrisGame implements Tetris {
 			field.fillCell(c.getX(), c.getY(), c2);
 		}
 
-		this.score += this.softCount; //pressed down quite a few times
+		//pressed down quite a few times
+		scorer.doPieceDrop(this.softCount);
 		this.softCount = 0; //but it has to be zero for the next one
 
 		
@@ -335,18 +334,15 @@ public class TetrisGame implements Tetris {
 
 		if (tSpin) { //TSpin with no lines
 			triggerEvent(EventType.TSpin, 0);
-			this.score += 400*level; //not great that this is out here
-			updateLevel();
+			this.scorer.doAction(Action.T_SPIN);
+		} else {
+			this.scorer.doAction(Action.NOTHING); //call with nothing when block drops but nothing scorable happens
 		}
-		
-		this.lineCombo = 0;
 		
 		spawnNextBlock();
 	}
 	
-	/**
-	 * Trigger this method when the ui code is done with showing the line.
-	 */
+	/** Trigger this method when the ui code is done with showing the line. */
 	public void triggerLineEnd() {
 		field.removeRows(flashRows);
 		this.flashRows.clear();
@@ -391,57 +387,33 @@ public class TetrisGame implements Tetris {
 	}
 	
 	private void updateByLines(int lines, boolean tSpin) {
-		this.lines += lines;
-		this.lineCombo++;
-		
+		if (tSpin && lines == 3) { //T-Spin Triple
+			scorer.doAction(ScoringSystem.Action.T_SPIN_TRIPLE);
+		} else if (tSpin && lines == 2) { //T-Spin Double
+			scorer.doAction(ScoringSystem.Action.T_SPIN_DOUBLE);
+		} else if (lines == 4) { //tetris
+			scorer.doAction(ScoringSystem.Action.TETRIS);
+		} else if (tSpin && lines == 1) { //T-Spin Single
+			scorer.doAction(ScoringSystem.Action.T_SPIN_SINGLE);
+		} else if (lines == 3) { //triple
+			scorer.doAction(ScoringSystem.Action.TRIPLE);
+		} else if (lines == 2) { //double
+			scorer.doAction(ScoringSystem.Action.DOUBLE);
+		} else if (lines == 1) { //single
+			scorer.doAction(ScoringSystem.Action.SINGLE);
+		}
+
+		//do event triggers
 		if (tSpin)
 			triggerEvent(EventType.TSpin, lines);
 		else
 			triggerEvent(EventType.Line, lines);
-		
-		triggerEvent(EventType.LineCombo, lineCombo);
-
-		//http://tetris.wikia.com/wiki/Scoring#Guideline_scoring_system
-		
-		this.score += 50*lineCombo*level;
-
-		if (tSpin && lines == 3) { //T-Spin Triple
-			this.score += 1600*this.level;
-			this.levelPoints += 16;
-		} else if (tSpin && lines == 2) { //T-Spin Double
-			this.score += 1200*this.level;
-			this.levelPoints += 16;
-		} else if (lines == 4 || (tSpin && lines == 1)) { //tetris or T-Spin Single
-			this.score += 800*this.level;
-			this.levelPoints += 8;
-		} else if (lines == 3) { //triple
-			this.score += 500*this.level;
-			this.levelPoints += 5;
-		} else if (lines == 2) { //double
-			this.score += 300*this.level;
-			this.levelPoints += 3;
-		} else if (lines == 1) { //single
-			this.score += 100*this.level;
-			this.levelPoints += 1;
-		}
-		//TODO B2B scoring
-		
-		updateLevel();
-	}
-	
-	private void updateLevel() {
-		//update level based on levelPoints
-		while (this.levelPoints > this.level*5) {
-			this.levelPoints -= this.level*5;
-			this.level++;
-		}
-		
-		this.level = Math.min(this.level, 20); //prevent a higher level than 20
+		triggerEvent(EventType.LineCombo, scorer.getLineCombo());
 	}
 		
 	@Override
 	public String toString() {
-		return "Tetris: " + this.score + " " + this.lines + " " + this.curShape.type;
+		return "Tetris: " + this.scorer.getScore() + " " + this.scorer.getLines() + " " + this.curShape.type;
 	}
 
 	public TetrisGame cloneForAI() {
@@ -457,18 +429,14 @@ public class TetrisGame implements Tetris {
 		for (int i = 0; i < this.nextShapes.length; i++)
 			tg.nextShapes[i] = this.nextShapes[i].clone();
 		
-		//clone basic fields
-		tg.level = this.level;
-		tg.levelPoints = this.levelPoints;
-		tg.score = this.score;
-		tg.lines = this.lines;
+		//clone scoring fields
+		tg.scorer = this.scorer.clone();
 		
 		//state fields
 		tg.softCount = this.softCount;
 		tg.dropTimer = this.dropTimer;
 		tg.lockTimer = this.lockTimer;
 		tg.pieceHeld = this.pieceHeld;
-		tg.lineCombo = this.lineCombo;
 
 		for (Integer i: this.flashRows)
 			tg.flashRows.add(i);
