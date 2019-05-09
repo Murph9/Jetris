@@ -167,7 +167,7 @@ public class TetrisGame implements Tetris {
 			lineModeActionBuffer.add(action);
 			return; 
 		}
-		
+
 		Shape newState = this.curShape.clone();
 		switch (action) {
 		case HARD_DOWN:
@@ -176,6 +176,9 @@ public class TetrisGame implements Tetris {
 			newState.translate(0, -this.softCount);
 			this.softCount *= 2; //hard drop gets double points
 			this.curShape = newState;
+			
+			this.lastSuccessfulMoveType = action; //last action is now hard lock
+			
 			if (settings.hardDropLock) { //Note: this basically forfeits any softlock points
 				this.lockTimer = 0;
 				blockHit();
@@ -190,6 +193,9 @@ public class TetrisGame implements Tetris {
 				return;
 			pieceHeld = true;
 			
+			//update last action as this is successful at this point
+			this.lastSuccessfulMoveType = action;
+
 			//hold case is special, if hold empty move to hold and go to the next one
 			if (this.holdShape == null) {
 				this.holdShape = Shape.getNew(newState.type); //reset position
@@ -200,6 +206,7 @@ public class TetrisGame implements Tetris {
 			Shape.Type holdType = this.curShape.type;
 			this.curShape = Shape.getNew(this.holdShape.type); //reset position
 			this.holdShape = Shape.getNew(holdType); //reset position
+			
 			updateGhostShape();
 			return;
 		case SOFT_DOWN:
@@ -333,7 +340,7 @@ public class TetrisGame implements Tetris {
 		}
 
 		if (tSpin) { //TSpin with no lines
-			triggerEvent(EventType.TSpin, 0);
+			triggerEvent(EventType.TSpin, 0, false); //can't b2b a normal t-spin
 			this.scorer.doAction(Action.T_SPIN);
 		} else {
 			this.scorer.doAction(Action.NOTHING); //call with nothing when block drops but nothing scorable happens
@@ -387,28 +394,29 @@ public class TetrisGame implements Tetris {
 	}
 	
 	private void updateByLines(int lines, boolean tSpin) {
+		boolean ifB2b = false;
 		if (tSpin && lines == 3) { //T-Spin Triple
-			scorer.doAction(ScoringSystem.Action.T_SPIN_TRIPLE);
+			ifB2b = scorer.doAction(ScoringSystem.Action.T_SPIN_TRIPLE);
 		} else if (tSpin && lines == 2) { //T-Spin Double
-			scorer.doAction(ScoringSystem.Action.T_SPIN_DOUBLE);
+			ifB2b = scorer.doAction(ScoringSystem.Action.T_SPIN_DOUBLE);
 		} else if (lines == 4) { //tetris
-			scorer.doAction(ScoringSystem.Action.TETRIS);
+			ifB2b = scorer.doAction(ScoringSystem.Action.TETRIS);
 		} else if (tSpin && lines == 1) { //T-Spin Single
-			scorer.doAction(ScoringSystem.Action.T_SPIN_SINGLE);
+			ifB2b = scorer.doAction(ScoringSystem.Action.T_SPIN_SINGLE);
 		} else if (lines == 3) { //triple
-			scorer.doAction(ScoringSystem.Action.TRIPLE);
+			ifB2b = scorer.doAction(ScoringSystem.Action.TRIPLE);
 		} else if (lines == 2) { //double
-			scorer.doAction(ScoringSystem.Action.DOUBLE);
+			ifB2b = scorer.doAction(ScoringSystem.Action.DOUBLE);
 		} else if (lines == 1) { //single
-			scorer.doAction(ScoringSystem.Action.SINGLE);
+			ifB2b = scorer.doAction(ScoringSystem.Action.SINGLE);
 		}
 
 		//do event triggers
 		if (tSpin)
-			triggerEvent(EventType.TSpin, lines);
+			triggerEvent(EventType.TSpin, lines, ifB2b);
 		else
-			triggerEvent(EventType.Line, lines);
-		triggerEvent(EventType.LineCombo, scorer.getLineCombo());
+			triggerEvent(EventType.Line, lines, ifB2b);
+		triggerEvent(EventType.LineCombo, scorer.getLineCombo(), ifB2b);
 	}
 		
 	@Override
@@ -457,19 +465,19 @@ public class TetrisGame implements Tetris {
 		Lock;
 	}
 	private void triggerEvent(EventType st) {
-		triggerEvent(st, -1);
+		triggerEvent(st, -1, false);
 	}
-	private void triggerEvent(EventType st, int int1) {
+	private void triggerEvent(EventType st, int int1, boolean b2b) {
 		for (TetrisEventListener ls: this.listeners) {
 			switch(st) {
 			case Line:
-				ls.onNewLine(int1);
+				ls.onNewLine(int1, b2b);
 				break;
 			case LineCombo:
 				ls.onLineCombo(int1);
 				break;
 			case TSpin:
-				ls.onTSpin(int1);
+				ls.onTSpin(int1, b2b);
 				break;
 			case GameOver:
 				ls.onGameOver();

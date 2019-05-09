@@ -1,7 +1,7 @@
 package logic;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.EnumSet;
+import java.util.Set;
 
 public class ScoringSystem {
 
@@ -32,11 +32,16 @@ public class ScoringSystem {
         this.score += count;
     }
 
-    /** Call for every piece lock */
-    void doAction(Action ac) {
+    /** Call for every piece lock, returns if B2B (until we need to return something else) */
+    boolean doAction(Action ac) {
+        this.lines += ac.lines;
+
+        boolean b2b = false;
+
         //inc score as per action points
         if (this.lastAction == ac && ac.canB2B) {
             //B2B scoring is 1.5 times more
+            b2b = true;
             this.score += 1.5f * ac.mult * this.level;
             this.levelPoints += 1.5f * (ac.mult/100);
         } else {
@@ -54,6 +59,8 @@ public class ScoringSystem {
         }
 
         updateLevel();
+
+        return b2b;
     }
 
 	private void updateLevel() {
@@ -81,25 +88,27 @@ public class ScoringSystem {
     enum Action { //scoring types
         //https://tetris.fandom.com/wiki/Scoring#Guideline_scoring_system
         
-        NOTHING(0, false), //default value
-        SINGLE(100, false),
-        T_SPIN_MINI(100, true),
-        T_SPIN_MINI_SINGLE(200, false), //'half' a t-spin with a line
-        DOUBLE(300, false),
-        T_SPIN(400, false), //a t-spin with no lines
-        TRIPLE(500, false),
-        TETRIS(800, true),
-        T_SPIN_SINGLE(800, true),
-        T_SPIN_DOUBLE(1200, true),
-        T_SPIN_TRIPLE(1600, true);
+        NOTHING(0, false, 0), //default value
+        SINGLE(100, false, 1),
+        T_SPIN_MINI(100, true, 0),
+        T_SPIN_MINI_SINGLE(200, false, 1), //'half' a t-spin with a line
+        DOUBLE(300, false, 2),
+        T_SPIN(400, false, 0), //a t-spin with no lines
+        TRIPLE(500, false, 3),
+        TETRIS(800, true, 4),
+        T_SPIN_SINGLE(800, true, 1),
+        T_SPIN_DOUBLE(1200, true, 2),
+        T_SPIN_TRIPLE(1600, true, 3);
 
         private int mult;
         private boolean canB2B;
-        private Action(int mult, boolean canB2B) {
+        private int lines;
+        private Action(int mult, boolean canB2B, int lines) {
             this.mult = mult;
             this.canB2B = canB2B;
+            this.lines = lines;
         }
 
-        public static List<Action> NOT_A_LINE = Arrays.asList(Action.NOTHING, Action.T_SPIN, Action.T_SPIN_MINI);
+        public static Set<Action> NOT_A_LINE = EnumSet.of(NOTHING, T_SPIN, T_SPIN_MINI);
     }
 }

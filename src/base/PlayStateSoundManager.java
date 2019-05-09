@@ -115,7 +115,7 @@ public class PlayStateSoundManager extends BaseAppState {
 		}
 		
 		@Override
-		public void onNewLine(int count) {
+		public void onNewLine(int count, boolean isB2b) {
 			newLine.play();
 		}
 		
@@ -125,8 +125,8 @@ public class PlayStateSoundManager extends BaseAppState {
 		}
 		
 		@Override
-		public void onTSpin(int count) {
-			//no idea yet
+		public void onTSpin(int count, boolean isB2b) {
+			newLine.play();
 		}
 
 		@Override

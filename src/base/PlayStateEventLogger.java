@@ -13,15 +13,16 @@ public class PlayStateEventLogger implements TetrisEventListener {
 	}
 	
 	@Override
-	public void onNewLine(int count) {
+	public void onNewLine(int count, boolean isB2B) {
+		final String b2bStr = isB2B ? "B2B " : "";
 		if (count == 1)
-			this.func.accept("Single");
+			this.func.accept(b2bStr+"Single");
 		if (count == 2)
-			this.func.accept("Double");
+			this.func.accept(b2bStr+"Double");
 		if (count == 3)
-			this.func.accept("Triple");
+			this.func.accept(b2bStr+"Triple");
 		if (count == 4)
-			this.func.accept("Tetris");
+			this.func.accept(b2bStr+"Tetris");
 	}
 	
 	@Override
@@ -61,14 +62,15 @@ public class PlayStateEventLogger implements TetrisEventListener {
 	}
 	
 	@Override
-	public void onTSpin(int count) {
+	public void onTSpin(int count, boolean isB2B) {
+		final String b2bStr = isB2B ? "B2B " : "";
 		if (count == 0)
-			this.func.accept("TSpin");
+			this.func.accept(b2bStr+"TSpin");
 		if (count == 1)
-			this.func.accept("TSpin Single!");
+			this.func.accept(b2bStr+"TSpin Single!");
 		if (count == 2)
-			this.func.accept("TSpin Double!!");
+			this.func.accept(b2bStr+"TSpin Double!!");
 		if (count == 3)
-			this.func.accept("TSpin Triple!!!");
+			this.func.accept(b2bStr+"TSpin Triple!!!");
 	}
 }
