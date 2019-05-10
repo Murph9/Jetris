@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import logic.ScoringSystem.Action;
+import logic.Shape.Rotation;
 import logic.Shape.Type;
 
 public class TetrisGame implements Tetris {
@@ -285,25 +286,51 @@ public class TetrisGame implements Tetris {
 		//detecting t-spins: 3-corner T mode
 		//https://tetris.fandom.com/wiki/T-Spin
 		boolean tSpin = false;
+		boolean tSpinMini = false;
+		int x = (int)this.curShape.xCentre; //T's center is a whole number
+		int y = (int)this.curShape.yCentre;
 		if (this.curShape.type == Type.T && (lastSuccessfulMoveType == InputAction.ROTATE_LEFT || lastSuccessfulMoveType == InputAction.ROTATE_RIGHT)) {
-			//check 3 of 4 corners are filled
-			int x = (int)this.curShape.xCentre; //T's center is a whole number
-			int y = (int)this.curShape.yCentre;
+			//check that 3 of 4 corners are filled in
 			int count = 0;
-			if (field.isCellFilled(x - 1, y - 1))
+			if (field.isCellFilled(x - 1, y - 1, true))
 				count++;
-			if (field.isCellFilled(x + 1, y - 1))
+			if (field.isCellFilled(x + 1, y - 1, true))
 				count++;
-			if (field.isCellFilled(x - 1, y + 1))
+			if (field.isCellFilled(x - 1, y + 1, true))
 				count++;
-			if (field.isCellFilled(x + 1, y + 1))
+			if (field.isCellFilled(x + 1, y + 1, true))
 				count++;
 			
 			tSpin = count >= 3;
 		}
 
-		//TODO more complex T-spin mini rules from the link above:
-		//its a mini t-spin if the hole is on the point side, or there is a hole opposite the point
+		//try and detect if its only a mini (mini rules require rotation is taken into account, so this sucks)
+		if (tSpin) {
+			//a mini t-spin if:
+			//the hole is on the point side or there is a hole opposite the point
+			if (this.curShape.rotState == Rotation.NONE) {
+				tSpinMini = !field.isCellFilled(x, y - 1, true)    // 2 x 1 
+						|| !field.isCellFilled(x + 1, y + 1, true) // x x x
+						|| !field.isCellFilled(x - 1, y + 1, true);//   0
+			}
+			if (this.curShape.rotState == Rotation.RIGHT) {
+				 //TODO test
+				tSpinMini = !field.isCellFilled(x - 1, y, true)    //   x 1 
+						|| !field.isCellFilled(x + 1, y + 1, true) // 0 x x
+						|| !field.isCellFilled(x + 1, y - 1, true);//   x 2
+			}
+			if (this.curShape.rotState == Rotation.LEFT) {
+				 //TODO test
+				tSpinMini = !field.isCellFilled(x + 1, y, true)    // 1 x 
+						|| !field.isCellFilled(x - 1, y + 1, true) // x x 0
+						|| !field.isCellFilled(x - 1, y - 1, true);// 2 x
+			}
+			if (this.curShape.rotState == Rotation.DOUBLE) {
+				tSpinMini = !field.isCellFilled(x, y + 1, true)    //   0 
+						|| !field.isCellFilled(x + 1, y - 1, true) // x x x
+						|| !field.isCellFilled(x - 1, y - 1, true);// 2 x 1
+			}
+		}
 
 		for (Cell c: this.curShape.getCells()) {
 			//add the cells to the grid
@@ -335,13 +362,17 @@ public class TetrisGame implements Tetris {
 		//check for new lines
 		updateFlashRows();
 		if (newLine()) {
-			updateByLines(flashRows.size(), tSpin);
+			updateByLines(flashRows.size(), tSpin, tSpinMini);
 			return;
 		}
 
 		if (tSpin) { //TSpin with no lines
-			triggerEvent(EventType.TSpin, 0, false); //can't b2b a normal t-spin
-			this.scorer.doAction(Action.T_SPIN);
+			boolean b2b;
+			if (tSpinMini)
+				b2b = this.scorer.doAction(Action.T_SPIN_MINI);
+			else
+				b2b = this.scorer.doAction(Action.T_SPIN);
+			triggerEvent(EventType.TSpin, 0, b2b, tSpinMini);
 		} else {
 			this.scorer.doAction(Action.NOTHING); //call with nothing when block drops but nothing scorable happens
 		}
@@ -393,7 +424,7 @@ public class TetrisGame implements Tetris {
 		}
 	}
 	
-	private void updateByLines(int lines, boolean tSpin) {
+	private void updateByLines(int lines, boolean tSpin, boolean tSpinMini) {
 		boolean ifB2b = false;
 		if (tSpin && lines == 3) { //T-Spin Triple
 			ifB2b = scorer.doAction(ScoringSystem.Action.T_SPIN_TRIPLE);
@@ -401,6 +432,8 @@ public class TetrisGame implements Tetris {
 			ifB2b = scorer.doAction(ScoringSystem.Action.T_SPIN_DOUBLE);
 		} else if (lines == 4) { //tetris
 			ifB2b = scorer.doAction(ScoringSystem.Action.TETRIS);
+		} else if (tSpin && tSpinMini && lines == 1) { //Mini T-Spin Single
+			ifB2b = scorer.doAction(ScoringSystem.Action.T_SPIN_MINI_SINGLE);
 		} else if (tSpin && lines == 1) { //T-Spin Single
 			ifB2b = scorer.doAction(ScoringSystem.Action.T_SPIN_SINGLE);
 		} else if (lines == 3) { //triple
@@ -413,10 +446,10 @@ public class TetrisGame implements Tetris {
 
 		//do event triggers
 		if (tSpin)
-			triggerEvent(EventType.TSpin, lines, ifB2b);
+			triggerEvent(EventType.TSpin, lines, ifB2b, tSpinMini);
 		else
-			triggerEvent(EventType.Line, lines, ifB2b);
-		triggerEvent(EventType.LineCombo, scorer.getLineCombo(), ifB2b);
+			triggerEvent(EventType.Line, lines, ifB2b, tSpinMini);
+		triggerEvent(EventType.LineCombo, scorer.getLineCombo(), false, false); //can't b2b a combo or a tSpinMini
 	}
 		
 	@Override
@@ -465,9 +498,9 @@ public class TetrisGame implements Tetris {
 		Lock;
 	}
 	private void triggerEvent(EventType st) {
-		triggerEvent(st, -1, false);
+		triggerEvent(st, -1, false, false);
 	}
-	private void triggerEvent(EventType st, int int1, boolean b2b) {
+	private void triggerEvent(EventType st, int int1, boolean b2b, boolean tSpinMini) {
 		for (TetrisEventListener ls: this.listeners) {
 			switch(st) {
 			case Line:
@@ -477,7 +510,7 @@ public class TetrisGame implements Tetris {
 				ls.onLineCombo(int1);
 				break;
 			case TSpin:
-				ls.onTSpin(int1, b2b);
+				ls.onTSpin(int1, tSpinMini, b2b);
 				break;
 			case GameOver:
 				ls.onGameOver();

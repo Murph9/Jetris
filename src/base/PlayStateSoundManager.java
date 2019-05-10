@@ -125,7 +125,7 @@ public class PlayStateSoundManager extends BaseAppState {
 		}
 		
 		@Override
-		public void onTSpin(int count, boolean isB2b) {
+		public void onTSpin(int count, boolean mini, boolean isB2b) {
 			newLine.play();
 		}
 

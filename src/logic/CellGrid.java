@@ -39,9 +39,15 @@ public class CellGrid {
 		return true;
 	}
 	
+	/** Is the cell filled */
 	public boolean isCellFilled(int x, int y) {
-		if (x < 0 || x >= width) return false;
-		if (y < 0 || y >= height) return false;
+		return isCellFilled(x, y, false);
+	}
+	
+	/** Is the cell filled, with a default */
+	public boolean isCellFilled(int x, int y, boolean base) {
+		if (x < 0 || x >= width) return base;
+		if (y < 0 || y >= height) return base;
 		return cells[y][x].getFilled();
 	}
 	

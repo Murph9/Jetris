@@ -62,15 +62,16 @@ public class PlayStateEventLogger implements TetrisEventListener {
 	}
 	
 	@Override
-	public void onTSpin(int count, boolean isB2B) {
-		final String b2bStr = isB2B ? "B2B " : "";
+	public void onTSpin(int count, boolean mini, boolean isB2B) {
+		String str = isB2B ? "B2B " : "";
+		str += mini ? "Mini " : "";
 		if (count == 0)
-			this.func.accept(b2bStr+"TSpin");
+			this.func.accept(str+"TSpin");
 		if (count == 1)
-			this.func.accept(b2bStr+"TSpin Single!");
+			this.func.accept(str+"TSpin Single!");
 		if (count == 2)
-			this.func.accept(b2bStr+"TSpin Double!!");
+			this.func.accept(str+"TSpin Double!!");
 		if (count == 3)
-			this.func.accept(b2bStr+"TSpin Triple!!!");
+			this.func.accept(str+"TSpin Triple!!!");
 	}
 }
