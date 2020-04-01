@@ -1,28 +1,67 @@
 apply plugin: 'java'
 apply plugin: 'eclipse'
+apply plugin: 'application'
 
-def mainClassName = 'base.Main'
+mainClassName = 'jetris.base.Main'
 
 repositories {
 	jcenter()
 	maven { url "https://dl.bintray.com/jmonkeyengine/org.jmonkeyengine" }
 }
 
-sourceSets {
-        main.java.srcDirs = ['src/']
+project(":assets") {
+    apply plugin: "java"
+    
+    buildDir = rootProject.file("build/assets")
+    
+    sourceSets {
+        main {
+            resources {
+                srcDir '.'
+                include '**'
+                exclude '**/*.blend'
+                exclude '**/*.ps1'
+                exclude '**/*.py'
+                exclude '**/*.blend1'
+                exclude 'bin/*'
+            }
+        }
+    }
 }
 
-jar {
-	manifest {
-		attributes 'Main-Class': '${mainClassName}'
-	}
-	
-	exclude ('META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA')
+task createFatJar(type: Jar) {
+    archiveBaseName = 'jetris'
+
+    manifest {
+        attributes 'Main-Class': "${mainClassName}"
+    }
+
+    from sourceSets.main.output
+    dependsOn configurations.compileClasspath
+
+    from {
+        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }
+    }
+
+    dependsOn 'build'
 }
 
+test {
+    // Use junit platform for unit tests
+    useJUnitPlatform()
+}
+
+application {
+    // Define the main class for the application
+    mainClassName = "${mainClassName}"
+}
+
+def jme3Version = '3.2.4-stable'
 dependencies {
-	compile 'org.jmonkeyengine:jme3-core:3.2.2-stable'
-	compile 'org.jmonkeyengine:jme3-desktop:3.2.2-stable'
-	compile 'org.jmonkeyengine:jme3-lwjgl:3.2.2-stable'
-	compile 'com.simsilica:lemur:1.11.0'
+	implementation "org.jmonkeyengine:jme3-core:${jme3Version}"
+	implementation "org.jmonkeyengine:jme3-desktop:${jme3Version}"
+	implementation "org.jmonkeyengine:jme3-lwjgl:${jme3Version}"
+	implementation "com.simsilica:lemur:1.11.0"
+
+	runtimeOnly project(':assets')
 }
