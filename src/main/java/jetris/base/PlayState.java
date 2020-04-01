@@ -320,7 +320,7 @@ public class PlayState extends BaseAppState {
 					for (int i = 0; i < X_SIZE; i++) {
 						Cell c = engine.getCell(i, j);
 						Geometry g = this.cellMap.get(c);
-						Material mat = new Material(Main.CURRENT.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+						Material mat = new Material(getApplication().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
 						mat.setColor("Color", ColorRGBA.White);
 						g.setMaterial(mat);
 					}

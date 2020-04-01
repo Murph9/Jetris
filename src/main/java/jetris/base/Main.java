@@ -13,12 +13,8 @@ import jetris.saving.SettingsManager;
 
 public class Main extends SimpleApplication {
 
-	public static Main CURRENT = new Main();
-	
 	public static void main(String[] args) {
 		Main app = new Main();
-		CURRENT = app;
-//		app.setShowSettings(false);
 		app.setDisplayStatView(false); //defaults to on, shows the triangle count and stuff
 		app.start();
 	}
