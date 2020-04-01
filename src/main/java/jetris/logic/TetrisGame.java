@@ -314,13 +314,11 @@ public class TetrisGame implements Tetris {
 						|| !field.isCellFilled(x - 1, y + 1, true);//   0
 			}
 			if (this.curShape.rotState == Rotation.RIGHT) {
-				 //TODO test
 				tSpinMini = !field.isCellFilled(x - 1, y, true)    //   x 1 
 						|| !field.isCellFilled(x + 1, y + 1, true) // 0 x x
 						|| !field.isCellFilled(x + 1, y - 1, true);//   x 2
 			}
 			if (this.curShape.rotState == Rotation.LEFT) {
-				 //TODO test
 				tSpinMini = !field.isCellFilled(x + 1, y, true)    // 1 x 
 						|| !field.isCellFilled(x - 1, y + 1, true) // x x 0
 						|| !field.isCellFilled(x - 1, y - 1, true);// 2 x

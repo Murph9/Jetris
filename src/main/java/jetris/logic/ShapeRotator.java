@@ -12,11 +12,6 @@ public class ShapeRotator {
 	//https://harddrop.com/wiki/SRS#Wall_Kick_Illustration
 	//http://tetris.wikia.com/wiki/SRS
 
-	enum KickType {
-		NORMAL,
-		OTHER;
-	}
-	
 	public static Shape rotate(Shape shape, boolean right, Function<Shape, Boolean> isValid) {
 		Shape.Rotation rotState = shape.rotState;
 		shape.rotate(right);
@@ -144,4 +139,18 @@ public class ShapeRotator {
 	private static final List<Kick> kickI0_L = Arrays.asList(
 			new Kick(0,0), new Kick(-1,0), new Kick(2,0), new Kick(-1,2), new Kick(2,-1)
 		);
+}
+
+class Kick {
+	final int x;
+	final int y;
+
+	Kick(int x, int y) {
+		this.x = x;
+		this.y = y;
+	}
+}
+
+enum KickType {
+	NORMAL, OTHER;
 }

@@ -5,7 +5,6 @@ import java.util.LinkedList;
 import java.util.Map;
 
 import jetris.base.H;
-import jetris.logic.ShapeRotator.KickType;
 import jetris.saving.ISettings;
 import jetris.saving.SettingsManager;
 
@@ -55,7 +54,7 @@ public class Shape {
 		switch (t) {//I, O, T, S, Z, J, and L
 			case I:
 				Shape shape = new Shape(t, KickType.OTHER);
-				shape.addCell(new Cell(3,20)); //    
+				shape.addCell(new Cell(3,20)); // X X X X
 				shape.addCell(new Cell(4,20));
 				shape.addCell(new Cell(5,20));
 				shape.addCell(new Cell(6,20));
@@ -63,48 +62,48 @@ public class Shape {
 				return shape;
 			case O:
 				shape = new Shape(t, KickType.OTHER); //doesn't matter what kick type and I looked lonely
-				shape.addCell(new Cell(4,20)); //  
-				shape.addCell(new Cell(5,20)); //  
+				shape.addCell(new Cell(4,20)); // X X
+				shape.addCell(new Cell(5,20)); // X X
 				shape.addCell(new Cell(4,21));
 				shape.addCell(new Cell(5,21));
 				shape.setCentre(4.5f, 20.5f); //center of the 4 cells
 				return shape;
 			case T:
 				shape = new Shape(t, KickType.NORMAL);
-				shape.addCell(new Cell(3,20)); //   
-				shape.addCell(new Cell(4,21)); //   
+				shape.addCell(new Cell(3,20)); //   X
+				shape.addCell(new Cell(4,21)); // X X X
 				shape.addCell(new Cell(4,20));
 				shape.addCell(new Cell(5,20));
 				shape.setCentre(4, 20); //bottom middle
 				return shape;
 			case S:
 				shape = new Shape(t, KickType.NORMAL);
-				shape.addCell(new Cell(3,20)); //    
-				shape.addCell(new Cell(4,21)); //  
+				shape.addCell(new Cell(3,20)); //   X X
+				shape.addCell(new Cell(4,21)); // X X
 				shape.addCell(new Cell(4,20));
 				shape.addCell(new Cell(5,21));
 				shape.setCentre(4, 20);
 				return shape;
 			case Z:
 				shape = new Shape(t, KickType.NORMAL);
-				shape.addCell(new Cell(5,20)); //  
-				shape.addCell(new Cell(4,21)); //    
+				shape.addCell(new Cell(5,20)); // X X
+				shape.addCell(new Cell(4,21)); //   X X
 				shape.addCell(new Cell(4,20));
 				shape.addCell(new Cell(3,21));
 				shape.setCentre(4, 20);
 				return shape;
 			case J:
 				shape = new Shape(t, KickType.NORMAL);
-				shape.addCell(new Cell(3,21)); // 
-				shape.addCell(new Cell(3,20)); //   
+				shape.addCell(new Cell(3,21)); // X
+				shape.addCell(new Cell(3,20)); // X X X
 				shape.addCell(new Cell(4,20));
 				shape.addCell(new Cell(5,20));
 				shape.setCentre(4, 20);
 				return shape;
 			case L:
 				shape = new Shape(t, KickType.NORMAL);
-				shape.addCell(new Cell(3,20)); //     
-				shape.addCell(new Cell(4,20)); //   
+				shape.addCell(new Cell(3,20)); //     X
+				shape.addCell(new Cell(4,20)); // X X X
 				shape.addCell(new Cell(5,21));
 				shape.addCell(new Cell(5,20));
 				shape.setCentre(4, 20);
@@ -174,7 +173,7 @@ public class Shape {
 	}
 	
 	
-	public void addCell(Cell cell) {
+	private void addCell(Cell cell) {
 		if (shapeCells.size() > 4) { System.out.println("Too many cells"); }
 		cell.fill(colour);
 		shapeCells.add(cell);
@@ -185,7 +184,14 @@ public class Shape {
 		this.yCentre = y;
 		this.xCentre = x;
 	}
-	
+	public float[] getCentre() {
+		return new float[] { xCentre, yCentre };
+	}
+
+	public Shape.Type getType() {
+		return this.type;
+	}
+
 	public void translate(int x, int y) {
 		for (Cell cell: shapeCells) {
 			cell.translate(x, y);
@@ -200,7 +206,7 @@ public class Shape {
 	public CellColour getColour() { return this.colour; }
 	
 	@Override
-	public String toString() { 
+	public String toString() {
 		return "rot:" + this.rotState + " center:(" 
 			+ this.xCentre + "," + this.yCentre + ") colour: ["+colour+"]";
 	}
